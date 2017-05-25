@@ -1,0 +1,6 @@
+# Python Distribution Package Requirements for APRS Cursor-on-Target Gateway.
+#
+# Source:: https://github.com/ampledata/aprscot
+# Author:: Greg Albrecht W2GMD <oss@undef.net>
+# Copyright:: Copyright 2017 Greg Albrecht
+# License:: Apache License, Version 2.0
