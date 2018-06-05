@@ -2,5 +2,8 @@
 #
 # Source:: https://github.com/ampledata/aprscot
 # Author:: Greg Albrecht W2GMD <oss@undef.net>
-# Copyright:: Copyright 2017 Greg Albrecht
+# Copyright:: Copyright 2018 Greg Albrecht
 # License:: Apache License, Version 2.0
+
+
+git+https://git@github.com/ampledata/gexml.git@master#egg=gexml

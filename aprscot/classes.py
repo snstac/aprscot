@@ -42,6 +42,7 @@ class APRSCOT(threading.Thread):
 
     def send_cot(self, aprs_frame):
         """Sends an APRS Frame to a Cursor-on-Target Host."""
+        self._logger.debug('Handling frame="%s"', aprs_frame)
         cot_event = aprscot.aprs_to_cot(aprs_frame)
         if cot_event is None:
             return
@@ -53,7 +54,7 @@ class APRSCOT(threading.Thread):
             port = 18999
 
         full_addr = (addr, int(port))
-        rendered_event = cot_event.render(standalone=True)
+        rendered_event = bytes(cot_event.render(standalone=True), 'utf8')
 
         self._logger.debug('Sending to %s: "%s"', full_addr, rendered_event)
 
@@ -61,4 +62,7 @@ class APRSCOT(threading.Thread):
         cot_int.sendto(rendered_event, full_addr)
 
     def run(self):
-        self.aprs_interface.receive(self.send_cot)
+        self._logger.info('Running Thread %s', self)
+        self.aprs_interface.connect()
+        self._logger.info('Connected to APRS-IS.')
+        self.aprs_interface.consumer(self.send_cot)

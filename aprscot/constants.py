@@ -12,7 +12,7 @@ __copyright__ = 'Copyright 2017 Greg Albrecht'
 __license__ = 'Apache License, Version 2.0'
 
 
-if bool(os.environ.get('DEBUG_APRSCOT')) or bool(os.environ.get('DEBUG_ALL')):
+if bool(os.environ.get('DEBUG')):
     LOG_LEVEL = logging.DEBUG
 else:
     LOG_LEVEL = logging.INFO

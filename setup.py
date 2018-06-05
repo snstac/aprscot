@@ -13,9 +13,9 @@ import sys
 import setuptools
 
 __title__ = 'aprscot'
-__version__ = '1.0.0'
+__version__ = '2.0.0b1'
 __author__ = 'Greg Albrecht W2GMD <oss@undef.net>'
-__copyright__ = 'Copyright 2017 Greg Albrecht'
+__copyright__ = 'Copyright 2018 Greg Albrecht'
 __license__ = 'Apache License, Version 2.0'
 
 
@@ -50,7 +50,7 @@ setuptools.setup(
         'nose >= 1.3.7'
     ],
     install_requires=[
-        'aprs >= 6.0.0',
+        'aprslib',
         'pycot >= 1.0.0'
     ],
     classifiers=[

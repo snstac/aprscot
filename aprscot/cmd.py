@@ -6,7 +6,7 @@
 import argparse
 import time
 
-import aprs
+import aprslib
 
 import aprscot
 
@@ -32,15 +32,15 @@ def cli():
         '-C', '--cot_host', help='Cursor-on-Target Host', required=True
     )
     parser.add_argument(
-        '-f', '--filter', help='APRS Filter', default='m/10'
+        '-f', '--aprs_filter', help='APRS Filter', default='m/1000'
     )
     opts = parser.parse_args()
 
-    aprs_i = aprs.TCP(opts.callsign, opts.passcode, aprs_filter=opts.filter)
+    aprs_i = aprslib.IS(opts.callsign, opts.passcode, port=14580)
+    aprs_i.set_filter(opts.aprs_filter)
     aprscot_i = aprscot.APRSCOT(aprs_i, opts.cot_host)
 
     try:
-        aprs_i.start()
         aprscot_i.start()
 
         while aprscot_i.is_alive():
