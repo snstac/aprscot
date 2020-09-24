@@ -10,11 +10,11 @@ import threading
 import aprscot
 
 __author__ = 'Greg Albrecht W2GMD <oss@undef.net>'
-__copyright__ = 'Copyright 2017 Greg Albrecht'
+__copyright__ = 'Copyright 2020 Greg Albrecht'
 __license__ = 'Apache License, Version 2.0'
 
 
-class APRSCOT(threading.Thread):
+class APRSCoT(threading.Thread):
 
     """APRS Cursor-on-Target Threaded Class."""
 
@@ -50,12 +50,13 @@ class APRSCOT(threading.Thread):
             addr, port = self.cot_host.split(':')
         else:
             addr = self.cot_host
-            port = 18999
+            port = aprscot.DEFAULT_COT_PORT
 
         full_addr = (addr, int(port))
-        rendered_event = cot_event.render(standalone=True)
+        rendered_event = cot_event.render(encoding='UTF-8', standalone=True)
 
-        self._logger.debug('Sending to %s: "%s"', full_addr, rendered_event)
+        self._logger.debug(
+            'Sending CoT to %s: "%s"', full_addr, rendered_event)
 
         cot_int = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         cot_int.sendto(rendered_event, full_addr)

@@ -2,7 +2,7 @@
 #
 # Source:: https://github.com/ampledata/aprscot
 # Author:: Greg Albrecht W2GMD <oss@undef.net>
-# Copyright:: Copyright 2017 Greg Albrecht
+# Copyright:: Copyright 2020 Greg Albrecht
 # License:: Apache License, Version 2.0
 #
 
@@ -49,8 +49,6 @@ clean:
 publish:
 	python setup.py register sdist upload
 
-nosetests: remember_test
-	python setup.py nosetests
 
 pep8: remember_test
 	flake8 --max-complexity 12 --exit-zero *.py aprscot/*.py tests/*.py
@@ -63,7 +61,7 @@ lint: remember_test
 
 pylint: lint
 
-test: lint pep8 nosetests
+test: lint pep8 pytest
 
 checkmetadata:
 	python setup.py check -s --restructuredtext

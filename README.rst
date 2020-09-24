@@ -1,33 +1,74 @@
 aprscot - APRS Cursor-on-Target Gateway.
 ****************************************
 
+.. image:: docs/screenshot2.png
+   :alt: Screenshot of APRS points in ATAK-Div Developer Edition.
+
+
 aprscot receives APRS Frames from APRS-IS and outputs them in Cursor-on-Target
-XML Formatted events, for use with COT systems such as RaptorX, Falconview, etc.
+XML Formatted events, for use with CoT systems such as ATAK, WinTAK, RaptorX,
+Falconview, etc. See https://www.civtak.org/ for more information on the TAK
+program.
 
-Currently only supports APRS-IS and Location-type APRS messages, and only sending
-to UDP COT Hosts.
+Currently supports APRS-IS and Location-type APRS messages, and sending to UDP
+CoT Hosts.
 
-More features and capabilities TK, let me know what you're looking to build!
+Installation
+============
+
+The command-line daemon `aprscot` can be install from this source tree (A), or from
+the Python Package Index (PyPI) (B).
+
+A) To install from this source tree::
+
+    $ git checkout https://github.com/ampledata/aprscot.git
+    $ cd aprscot/
+    $ python setup.py install
+
+B) To install from PyPI::
+
+    $ pip install aprscot
+
 
 Usage
 =====
 
-The following example forwards all APRS Frames within 100 meters of W2GMD-9's last known
-location to the Cursor-on-Target host at 10.1.0.1 port 18999 (UDP)::
+The `aprscot` daemon has several runtime arguments::
 
-    aprscot -c W2GMD-9 -p xxx -C 10.1.0.1:18999 -f m/100
+    $ aprscot --help
+    usage: aprscot [-h] -c CALLSIGN -p PASSCODE -C COT_HOST [-f FILTER]
+
+    optional arguments:
+      -h, --help            show this help message and exit
+      -c CALLSIGN, --callsign CALLSIGN
+                            APRS-IS Login Callsign
+      -p PASSCODE, --passcode PASSCODE
+                            APRS-IS Passcode
+      -C COT_HOST, --cot_host COT_HOST[:PORT]
+                            Cursor-on-Target Host or Host:Port
+      -f FILTER, --filter FILTER
+                            APRS-IS Filter, see: http://www.aprs-is.net/javAPRSFilter.aspx
+
+For minimum operation, `-c CALLSIGN` & `-C COT_HOST` are required.
+
+The following example forwards all APRS Frames within 50 meters of W2GMD-9's
+last known location to the Cursor-on-Target host at 10.1.2.3 port 4242 (UDP)::
+
+    aprscot -c W2GMD-9 -C 10.1.2.3:4242 -f m/50
 
 
 Example Cursor-on-Target Event
 ==============================
 
-Here's what a COT message from aprscot looks like::
+The `aprscot` daemon will output CoT XML Events similar to this example::
 
-    <?xml version="1.0" standalone="yes" ?>
-    <event version="1.0" type="a-f-G-E-V-C" uid="APRS.W2GMD-15"
-           time="2017-05-24T20:53:23.059489Z" how="h-e">
-      <point lat="37.693" lon="-121.72716" hae="10" ce="10" le="10" />
+    <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+    <event version="1.0" type="a-f-G-E-V-C" uid="APRS.W2GMD-1"
+        time="2020-09-24T14:53:28.945221Z" start="2020-09-24T14:53:28.945221Z"
+        stale="2020-09-24T15:53:28.945221Z" how="h-e">
+       <point lat="38.51167" lon="-122.99883" hae="10" ce="10" le="10" />
     </event>
+
 
 Build Status
 ============
@@ -55,10 +96,20 @@ http://ampledata.org/
 
 Copyright
 =========
-Copyright 2017 Greg Albrecht
+Copyright 2020 Greg Albrecht
 
 `Automatic Packet Reporting System (APRS) <http://www.aprs.org/>`_ is Copyright Bob Bruninga WB4APR wb4apr@amsat.org
 
 License
 =======
 Apache License, Version 2.0. See LICENSE for details.
+
+Debugging Cursor-on-Target
+==========================
+The publicly available ATAK source was a good reference for some of the parsing
+errors the ATAK-Civ Development Build was giving me, namely `Invalid CoT
+message received: Missing or invalid CoT event and/or point attributes`. Many
+errors are unfortunately caught in a single try/catch block:
+
+https://github.com/deptofdefense/AndroidTacticalAssaultKit-CIV/blob/6dc1941f45af3f9716e718dccebf42555a8c08fd/commoncommo/core/impl/cotmessage.cpp#L448
+

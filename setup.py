@@ -13,9 +13,9 @@ import sys
 import setuptools
 
 __title__ = 'aprscot'
-__version__ = '1.0.0'
+__version__ = '2.0.0b1'
 __author__ = 'Greg Albrecht W2GMD <oss@undef.net>'
-__copyright__ = 'Copyright 2017 Greg Albrecht'
+__copyright__ = 'Copyright 2020 Greg Albrecht'
 __license__ = 'Apache License, Version 2.0'
 
 
@@ -47,11 +47,12 @@ setuptools.setup(
     setup_requires=[
         'coverage >= 3.7.1',
         'httpretty >= 0.8.10',
-        'nose >= 1.3.7'
+        'pytest'
     ],
     install_requires=[
         'aprs >= 6.0.0',
-        'pycot >= 1.0.0'
+        'pycot >= 1.0.0',
+        'gexml'
     ],
     classifiers=[
         'Topic :: Communications :: Ham Radio',
@@ -59,7 +60,7 @@ setuptools.setup(
         'License :: OSI Approved :: Apache Software License'
     ],
     keywords=[
-        'Ham Radio', 'APRS', 'Cursor on Target'
+        'Ham Radio', 'APRS', 'Cursor on Target', 'ATAK', 'TAK', 'CoT'
     ],
     entry_points={'console_scripts': ['aprscot = aprscot.cmd:cli']}
 )
