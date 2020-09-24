@@ -29,3 +29,4 @@ output.xml
 pylint.log
 redis-server.log
 redis-server/
+.python-version

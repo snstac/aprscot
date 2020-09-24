@@ -3,6 +3,8 @@ aprscot - APRS Cursor-on-Target Gateway.
 
 .. image:: docs/screenshot2-25.png
    :alt: Screenshot of APRS points in ATAK-Div Developer Edition.
+   :target: docs/screenshot2-50.png
+
 
 
 aprscot receives APRS Frames from APRS-IS and outputs them in Cursor-on-Target
