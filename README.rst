@@ -1,7 +1,7 @@
 aprscot - APRS Cursor-on-Target Gateway.
 ****************************************
 
-.. image:: docs/screenshot2.png
+.. image:: docs/screenshot2-25.png
    :alt: Screenshot of APRS points in ATAK-Div Developer Edition.
 
 
