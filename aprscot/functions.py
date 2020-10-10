@@ -36,15 +36,15 @@ def aprs_to_cot(aprs_frame: dict) -> pycot.Event:
     point.le = '10'
     point.hae = '10'
 
-    contact = pycot.Contact()
-    contact.callsign = name
+    # contact = pycot.Contact()
+    # contact.callsign = name
 
     uid = pycot.UID()
     uid.Droid = name
 
     detail = pycot.Detail()
     detail.uid = uid
-    detail.contact = contact
+    # detail.contact = contact
 
     event = pycot.Event()
     event.version = '2.0'
