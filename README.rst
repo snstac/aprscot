@@ -38,18 +38,22 @@ Usage
 The `aprscot` daemon has several runtime arguments::
 
     $ aprscot --help
-    usage: aprscot [-h] -c CALLSIGN -p PASSCODE -C COT_HOST [-f FILTER]
+    usage: aprscot [-h] -c CALLSIGN -C COT_HOST [-p PASSCODE] [-a APRS_HOST]
+                   [-f FILTER]
 
     optional arguments:
       -h, --help            show this help message and exit
       -c CALLSIGN, --callsign CALLSIGN
                             APRS-IS Login Callsign
+      -C COT_HOST, --cot_host COT_HOST
+                            Cursor-on-Target Host or Host:Port
       -p PASSCODE, --passcode PASSCODE
                             APRS-IS Passcode
-      -C COT_HOST, --cot_host COT_HOST[:PORT]
-                            Cursor-on-Target Host or Host:Port
+      -a APRS_HOST, --aprs_host APRS_HOST
+                            APRS-IS Host (or Host:Port).
       -f FILTER, --filter FILTER
-                            APRS-IS Filter, see: http://www.aprs-is.net/javAPRSFilter.aspx
+                            APRS-IS Filter, see:
+                            http://www.aprs-is.net/javAPRSFilter.aspx
 
 For minimum operation, `-c CALLSIGN` & `-C COT_HOST` are required.
 
@@ -77,13 +81,13 @@ Build Status
 
 Master:
 
-.. image:: https://travis-ci.org/ampledata/aprscot.svg?branch=master
-    :target: https://travis-ci.org/ampledata/aprscot
+.. image:: https://travis-ci.com/ampledata/aprscot.svg?branch=master
+    :target: https://travis-ci.com/ampledata/aprscot
 
 Develop:
 
-.. image:: https://travis-ci.org/ampledata/aprscot.svg?branch=develop
-    :target: https://travis-ci.org/ampledata/aprscot
+.. image:: https://travis-ci.com/ampledata/aprscot.svg?branch=develop
+    :target: https://travis-ci.com/ampledata/aprscot
 
 
 Source
@@ -94,7 +98,7 @@ Author
 ======
 Greg Albrecht W2GMD oss@undef.net
 
-http://ampledata.org/
+https://ampledata.org/
 
 Copyright
 =========
