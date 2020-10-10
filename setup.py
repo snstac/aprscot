@@ -57,5 +57,5 @@ setuptools.setup(
     keywords=[
         'Ham Radio', 'APRS', 'Cursor on Target', 'ATAK', 'TAK', 'CoT'
     ],
-    entry_points={'console_scripts': ['aprscot = aprscot.cmd:cli']}
+    entry_points={'console_scripts': ['aprscot = aprscot.commands:cli']}
 )
