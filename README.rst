@@ -7,19 +7,19 @@ aprscot - APRS Cursor-on-Target Gateway.
 
 
 
-aprscot receives APRS Frames from APRS-IS and outputs them in Cursor-on-Target
-XML Formatted events, for use with CoT systems such as ATAK, WinTAK, RaptorX,
-Falconview, etc. See https://www.civtak.org/ for more information on the TAK
+aprscot receives APRS Frames from APRS-IS and outputs them in as
+Cursor-on-Target (CoT) PLI, for use with CoT systems such as ATAK, WinTAK,
+RaptorX, et al. See https://www.civtak.org/ for more information on the TAK
 program.
 
-Currently supports APRS-IS and Location-type APRS messages, and sending to UDP
-CoT Hosts.
+Currently supports APRS-IS and Location-type APRS messages, and sending to TCP
+CoT Hosts & TAK Servers.
 
 Installation
 ============
 
-The command-line daemon `aprscot` can be install from this source tree (A), or from
-the Python Package Index (PyPI) (B).
+The command-line daemon `aprscot` can be install from this source tree (A), or
+from the Python Package Index (PyPI) (B).
 
 A) To install from this source tree::
 
@@ -58,7 +58,7 @@ The `aprscot` daemon has several runtime arguments::
 For minimum operation, `-c CALLSIGN` & `-C COT_HOST` are required.
 
 The following example forwards all APRS Frames within 50 meters of W2GMD-9's
-last known location to the Cursor-on-Target host at 10.1.2.3 port 4242 (UDP)::
+last known location to the Cursor-on-Target host at 10.1.2.3 port 4242 (TCP)::
 
     aprscot -c W2GMD-9 -C 10.1.2.3:4242 -f m/50
 
