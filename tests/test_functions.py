@@ -1,3 +1,18 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+# Tests for APRS Cursor-on-Target Gateway.
+
+"""
+Tests for APRS Cursor-on-Target Gateway.
+~~~~
+
+:author: Greg Albrecht W2GMD <oss@undef.net>
+:copyright: Copyright 2020 Orion Labs, Inc.
+:license: Apache License, Version 2.0
+:source: <https://github.com/ampledata/aprscot>
+"""
+
 import unittest
 
 import aprslib

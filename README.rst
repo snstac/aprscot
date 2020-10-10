@@ -102,7 +102,7 @@ https://ampledata.org/
 
 Copyright
 =========
-Copyright 2020 Greg Albrecht
+Copyright 2020 Orion Labs, Inc.
 
 `Automatic Packet Reporting System (APRS) <http://www.aprs.org/>`_ is Copyright Bob Bruninga WB4APR wb4apr@amsat.org
 

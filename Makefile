@@ -2,7 +2,7 @@
 #
 # Source:: https://github.com/ampledata/aprscot
 # Author:: Greg Albrecht W2GMD <oss@undef.net>
-# Copyright:: Copyright 2020 Greg Albrecht
+# Copyright:: Copyright 2020 Orion Labs, Inc.
 # License:: Apache License, Version 2.0
 #
 
@@ -12,28 +12,19 @@
 
 all: develop
 
-install_requirements:
-	pip install -r requirements.txt
-
 install_requirements_test:
 		pip install -r requirements_test.txt
 
-develop: remember
+develop:
 	python setup.py develop
 
-install: remember
+install:
 	python setup.py install
 
 uninstall:
 	pip uninstall -y aprscot
 
 reinstall: uninstall install
-
-remember:
-	@echo
-	@echo "Hello from the Makefile..."
-	@echo "Don't forget to run: 'make install_requirements'"
-	@echo
 
 remember_test:
 	@echo
@@ -49,7 +40,6 @@ clean:
 publish:
 	python setup.py register sdist upload
 
-
 pep8: remember_test
 	flake8 --max-complexity 12 --exit-zero *.py aprscot/*.py tests/*.py
 
@@ -61,7 +51,7 @@ lint: remember_test
 
 pylint: lint
 
-test: lint pep8 pytest
-
 checkmetadata:
 	python setup.py check -s --restructuredtext
+
+test: lint pep8 pytest

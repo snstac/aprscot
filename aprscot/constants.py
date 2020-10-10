@@ -8,7 +8,7 @@ import os
 import re
 
 __author__ = 'Greg Albrecht W2GMD <oss@undef.net>'
-__copyright__ = 'Copyright 2020 Greg Albrecht'
+__copyright__ = 'Copyright 2020 Orion Labs, Inc.'
 __license__ = 'Apache License, Version 2.0'
 __source__ = 'https://github.com/ampledata/aprscot'
 

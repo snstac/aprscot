@@ -1,11 +1,12 @@
-# Python Distribution Package Requirements for APRS Tracker.
+# Test Requirements
 #
 # Source:: https://github.com/ampledata/aprscot
 # Author:: Greg Albrecht W2GMD <oss@undef.net>
-# Copyright:: Copyright 2017 Greg Albrecht
+# Copyright:: Copyright 2020 Orion Labs, Inc.
 # License:: Apache License, Version 2.0
 
 
 flake8
 pylint
 twine
+pytest

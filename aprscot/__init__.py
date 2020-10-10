@@ -9,7 +9,7 @@ APRS Cursor-on-Target Gateway.
 
 
 :author: Greg Albrecht W2GMD <oss@undef.net>
-:copyright: Copyright 2020 Greg Albrecht
+:copyright: Copyright 2020 Orion Labs, Inc.
 :license: Apache License, Version 2.0
 :source: <https://github.com/ampledata/aprscot>
 
