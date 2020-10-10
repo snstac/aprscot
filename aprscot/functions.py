@@ -13,67 +13,52 @@ import aprscot
 __author__ = 'Greg Albrecht W2GMD <oss@undef.net>'
 __copyright__ = 'Copyright 2020 Greg Albrecht'
 __license__ = 'Apache License, Version 2.0'
+__source__ = 'https://github.com/ampledata/aprscot'
 
 
-def decode_lat_lon(lat_lng: str) -> tuple:
-    """
-    Decodes APRS DMS Lat/Lng into Decimal Lat/Lng.
-    """
-    lat_lon = (None, None)
+def aprs_to_cot(aprs_frame: dict) -> pycot.Event:
+    """Converts an APRS Frame to a Cursor-on-Target Event."""
+    lat = aprs_frame.get('latitude')
+    lon = aprs_frame.get('longitude')
 
-    try:
-        ll_match = aprscot.LL_REX.search(lat_lng)
-    finally:
-        pass
-
-    if ll_match is not None:
-        aprs_lat = ll_match.group('aprs_lat')
-        aprs_lat_hours = int(aprs_lat[:2])
-        aprs_lat_mins = float(aprs_lat[-5:])
-        decimal_lat = aprs.decimaldegrees.dm2decimal(
-            aprs_lat_hours, aprs_lat_mins
-        )
-
-        aprs_lng = ll_match.group('aprs_lng')
-        aprs_lng_hours = int(aprs_lng[:3])
-        aprs_lng_mins = float(aprs_lng[-5:])
-        decimal_lng = aprs.decimaldegrees.dm2decimal(
-            aprs_lng_hours, aprs_lng_mins
-        )
-
-        lat_lon = decimal_lat, decimal_lng
-
-    return lat_lon
-
-
-def aprs_to_cot(aprs_frame: aprs.Frame) -> pycot.Event:
-    """
-    Converts an APRS Frame to a Cursor-on-Target Event.
-
-    :param aprs_frame: An `aprs.Frame` APRS Frame Object.
-    :type aprs_frame: `aprs.Frame`
-    """
-    lat, lon = decode_lat_lon(str(aprs_frame.info))
-    if lat is None or lon is None:
+    if not lat or not lon:
         return None
 
-    time = datetime.datetime.now()
+    # TODO: Should we make the 'APRS.' prefix configurable?
+    name = 'APRS.%s' % aprs_frame.get('from')
+    time = datetime.datetime.now(datetime.timezone.utc)
 
     point = pycot.Point()
     point.lat = lat
-    point.lon = f'-{str(lon)}'  # TODO: Western Hemisphere Only?
+    point.lon = lon
+
+    # FIXME: These values are static, should be dynamic.
     point.ce = '10'
     point.le = '10'
     point.hae = '10'
 
+    contact = pycot.Contact()
+    contact.callsign = name
+
+    uid = pycot.UID()
+    uid.Droid = name
+
+    detail = pycot.Detail()
+    detail.uid = uid
+    detail.contact = contact
+
     event = pycot.Event()
-    event.version = '1.0'
-    event.event_type = 'a-f-G-E-V-C'
-    event.uid = 'APRS.%s' % aprs_frame.source
+    event.version = '2.0'
+    # FIXME: The 'type' is static here, should be user configurable.
+    event.event_type = 'a-f-G-E-C-V'
+    event.uid = name
     event.time = time
     event.start = time
-    event.stale = time + + datetime.timedelta(hours=1)  # 1 hour expire
-    event.how = 'h-e'
+    # TODO: Should this be static?
+    event.stale = time + datetime.timedelta(hours=1)  # 1 hour expire
+    # TODO: Should this be static?
+    event.how = 'h-g-i-g-o'
     event.point = point
+    event.detail = detail
 
     return event

@@ -50,7 +50,7 @@ setuptools.setup(
         'pytest'
     ],
     install_requires=[
-        'aprs >= 6.0.0',
+        'aprslib',
         'pycot >= 1.0.0',
         'gexml'
     ],

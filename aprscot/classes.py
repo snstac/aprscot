@@ -6,12 +6,14 @@
 import logging
 import socket
 import threading
+import time
 
 import aprscot
 
 __author__ = 'Greg Albrecht W2GMD <oss@undef.net>'
 __copyright__ = 'Copyright 2020 Greg Albrecht'
 __license__ = 'Apache License, Version 2.0'
+__source__ = 'https://github.com/ampledata/aprscot'
 
 
 class APRSCoT(threading.Thread):
@@ -27,16 +29,16 @@ class APRSCoT(threading.Thread):
         _logger.addHandler(_console_handler)
         _logger.propagate = False
 
-    def __init__(self, aprs_interface, cot_host):
+    def __init__(self, aprs_interface, cot_host: str) -> None:
         self.aprs_interface = aprs_interface
-        self.cot_host = cot_host
+        self.cot_host: str = cot_host
+
+        # Thread stuff:
         threading.Thread.__init__(self)
         self._stopped = False
 
     def stop(self):
-        """
-        Stop the thread at the next opportunity.
-        """
+        """Stops the thread at the next opportunity."""
         self._stopped = True
         return self._stopped
 
@@ -46,20 +48,38 @@ class APRSCoT(threading.Thread):
         if cot_event is None:
             return
 
+        rendered_event = cot_event.render(encoding='UTF-8', standalone=True)
+
+        self._logger.debug(
+            'Sending CoT to %s: "%s"', self.full_addr, rendered_event)
+
+        try:
+            sent = self.socket.send(rendered_event)
+            self._logger.debug('Socket sent %s bytes', sent)
+            return sent
+        except Exception as exc:
+            self._logger.error(
+                'socket.send raised an Exception, sleeping & re-trying:')
+            self._logger.exception(exc)
+            # TODO: Make this value configurable, or add ^backoff.
+            time.sleep(30)
+
+    def _start_socket(self):
+        """Starts the TCP Socket for sending CoT events."""
+        self._logger.debug('Setting up socket.')
+        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
         if ':' in self.cot_host:
             addr, port = self.cot_host.split(':')
         else:
             addr = self.cot_host
             port = aprscot.DEFAULT_COT_PORT
 
-        full_addr = (addr, int(port))
-        rendered_event = cot_event.render(encoding='UTF-8', standalone=True)
-
-        self._logger.debug(
-            'Sending CoT to %s: "%s"', full_addr, rendered_event)
-
-        cot_int = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        cot_int.sendto(rendered_event, full_addr)
+        self.full_addr = (addr, int(port))
+        self.socket.connect((addr, int(port)))
 
     def run(self):
-        self.aprs_interface.receive(self.send_cot)
+        """Runs this Thread, reads APRS & outputs CoT."""
+        self._logger.info('Running APRSCoT Thread...')
+        self._start_socket()
+        self.aprs_interface.consumer(self.send_cot)

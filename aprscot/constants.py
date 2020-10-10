@@ -10,6 +10,7 @@ import re
 __author__ = 'Greg Albrecht W2GMD <oss@undef.net>'
 __copyright__ = 'Copyright 2020 Greg Albrecht'
 __license__ = 'Apache License, Version 2.0'
+__source__ = 'https://github.com/ampledata/aprscot'
 
 
 if bool(os.environ.get('DEBUG')):
@@ -27,3 +28,4 @@ LL_REX = re.compile(
 )
 
 DEFAULT_COT_PORT: int = 4242
+DEFAULT_APRSIS_PORT: int = 14580
