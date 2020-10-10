@@ -44,11 +44,6 @@ setuptools.setup(
     url='https://github.com/ampledata/aprscot',
     zip_safe=False,
     include_package_data=True,
-    tests_requires=[
-        'coverage >= 3.7.1',
-        'httpretty >= 0.8.10',
-        'pytest'
-    ],
     install_requires=[
         'aprslib',
         'pycot >= 1.0.0',
