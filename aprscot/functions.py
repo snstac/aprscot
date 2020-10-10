@@ -5,7 +5,6 @@
 
 import datetime
 
-import aprs
 import pycot
 
 import aprscot
