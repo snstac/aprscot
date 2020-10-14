@@ -8,6 +8,8 @@ import socket
 import threading
 import time
 
+import pycot
+
 import aprscot
 
 __author__ = 'Greg Albrecht W2GMD <oss@undef.net>'
@@ -51,41 +53,12 @@ class APRSCoT(threading.Thread):
         rendered_event = cot_event.render(encoding='UTF-8', standalone=True)
 
         self._logger.debug(
-            'Sending CoT to %s: "%s"', self.full_addr, rendered_event)
+            'Sending CoT to %s : "%s"', self.cot_host, rendered_event)
 
-        # is the socket alive?
-        assert(self.socket.fileno() != -1)
-
-        self.socket.settimeout(0.5)
-
-        try:
-            self.socket.sendall(rendered_event)
-            return True
-        except Exception as exc:
-            self._logger.error(
-                'socket.sendall raised an Exception, sleeping: ')
-            self._logger.exception(exc)
-            # TODO: Make this value configurable, or add ^backoff.
-            time.sleep(5)
-            self._start_socket()
-
-    def _start_socket(self):
-        """Starts the TCP Socket for sending CoT events."""
-        self._logger.debug('Setting up socket.')
-        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
-        if ':' in self.cot_host:
-            addr, port = self.cot_host.split(':')
-        else:
-            addr = self.cot_host
-            port = aprscot.DEFAULT_COT_PORT
-
-        self.full_addr = (addr, int(port))
-        self.socket.connect((addr, int(port)))
-        self.socket.setblocking(False)
+        self.net_client.sendall(rendered_event)
 
     def run(self):
         """Runs this Thread, reads APRS & outputs CoT."""
         self._logger.info('Running APRSCoT Thread...')
-        self._start_socket()
+        self.net_client = pycot.NetworkClient(self.cot_host)
         self.aprs_interface.consumer(self.send_cot)

@@ -46,7 +46,7 @@ setuptools.setup(
     include_package_data=True,
     install_requires=[
         'aprslib',
-        'pycot >= 1.0.0',
+        'pycot >= 2.1.0',
         'gexml'
     ],
     classifiers=[

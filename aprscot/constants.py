@@ -15,12 +15,14 @@ __source__ = 'https://github.com/ampledata/aprscot'
 
 if bool(os.environ.get('DEBUG')):
     LOG_LEVEL = logging.DEBUG
+    LOG_FORMAT = logging.Formatter(
+        ('%(asctime)s aprscot %(levelname)s %(name)s.%(funcName)s:%(lineno)d '
+         ' - %(message)s'))
+    logging.debug('aprscot Debugging Enabled via DEBUG Environment Variable.')
 else:
     LOG_LEVEL = logging.INFO
-
-LOG_FORMAT = logging.Formatter(
-    ('%(asctime)s aprscot %(levelname)s %(name)s.%(funcName)s:%(lineno)d '
-     ' - %(message)s'))
+    LOG_FORMAT = logging.Formatter(
+        ('%(asctime)s aprscot %(levelname)s - %(message)s'))
 
 # 3833.55N/12248.93W
 LL_REX = re.compile(
