@@ -53,9 +53,16 @@ class APRSCoT(threading.Thread):
         self._logger.debug(
             'Sending CoT to %s: "%s"', self.full_addr, rendered_event)
 
+        # is the socket alive?
+        assert(self.socket.fileno() != -1)
+
+        self.socket.settimeout(0.6)
+
         try:
-            self.socket.sendall(rendered_event)
-            return
+            sent = self.socket.send(rendered_event)
+            self._logger.debug('Socket sent %s bytes', sent)
+            assert(len(rendered_event) == sent)
+            return sent
         except Exception as exc:
             self._logger.error(
                 'socket.sendall raised an Exception, sleeping: ')
