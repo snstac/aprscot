@@ -54,7 +54,7 @@ class APRSCoT(threading.Thread):
             'Sending CoT to %s: "%s"', self.full_addr, rendered_event)
 
         try:
-            sent = self.socket.send(rendered_event)
+            sent = self.socket.sendall(rendered_event)
             self._logger.debug('Socket sent %s bytes', sent)
             return sent
         except Exception as exc:
