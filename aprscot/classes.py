@@ -54,15 +54,14 @@ class APRSCoT(threading.Thread):
             'Sending CoT to %s: "%s"', self.full_addr, rendered_event)
 
         try:
-            sent = self.socket.sendall(rendered_event)
-            self._logger.debug('Socket sent %s bytes', sent)
-            return sent
+            self.socket.sendall(rendered_event)
+            return
         except Exception as exc:
             self._logger.error(
-                'socket.send raised an Exception, sleeping & re-trying:')
+                'socket.sendall raised an Exception, sleeping: ')
             self._logger.exception(exc)
             # TODO: Make this value configurable, or add ^backoff.
-            time.sleep(30)
+            time.sleep(10)
 
     def _start_socket(self):
         """Starts the TCP Socket for sending CoT events."""
