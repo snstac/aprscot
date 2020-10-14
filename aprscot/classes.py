@@ -46,7 +46,7 @@ class APRSCoT(threading.Thread):
         """Sends an APRS Frame to a Cursor-on-Target Host."""
         cot_event = aprscot.aprs_to_cot(aprs_frame)
         if cot_event is None:
-            return
+            return False
 
         rendered_event = cot_event.render(encoding='UTF-8', standalone=True)
 
@@ -56,19 +56,18 @@ class APRSCoT(threading.Thread):
         # is the socket alive?
         assert(self.socket.fileno() != -1)
 
-        self.socket.settimeout(0.6)
+        self.socket.settimeout(0.5)
 
         try:
-            sent = self.socket.send(rendered_event)
-            self._logger.debug('Socket sent %s bytes', sent)
-            assert(len(rendered_event) == sent)
-            return sent
+            self.socket.sendall(rendered_event)
+            return True
         except Exception as exc:
             self._logger.error(
                 'socket.sendall raised an Exception, sleeping: ')
             self._logger.exception(exc)
             # TODO: Make this value configurable, or add ^backoff.
-            time.sleep(10)
+            time.sleep(5)
+            self._start_socket()
 
     def _start_socket(self):
         """Starts the TCP Socket for sending CoT events."""
@@ -83,6 +82,7 @@ class APRSCoT(threading.Thread):
 
         self.full_addr = (addr, int(port))
         self.socket.connect((addr, int(port)))
+        self.socket.setblocking(False)
 
     def run(self):
         """Runs this Thread, reads APRS & outputs CoT."""
