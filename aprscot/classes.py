@@ -108,4 +108,5 @@ class APRSWorker(threading.Thread):
             aprs_i.set_filter(self.aprs_filter)
 
         aprs_i.connect()
+        self.msg_queue.put(aprscot.hello_event().render(encoding='UTF-8', standalone=True))
         aprs_i.consumer(self._put_queue)

@@ -69,3 +69,41 @@ def aprs_to_cot(aprs_frame: dict, cot_type: str = None, # NOQA pylint: disable=t
     event.detail = detail
 
     return event
+
+
+def hello_event():
+    time = datetime.datetime.now(datetime.timezone.utc)
+    name = 'aprscot'
+    callsign = 'aprscot'
+
+    point = pycot.Point()
+    point.lat = 0.0
+    point.lon = 0.0
+
+    # FIXME: These values are static, should be dynamic.
+    point.ce = '9999999.0'
+    point.le = '9999999.0'
+    point.hae = '9999999.0'
+
+    uid = pycot.UID()
+    uid.Droid = name
+
+    contact = pycot.Contact()
+    contact.callsign = callsign
+
+    detail = pycot.Detail()
+    detail.uid = uid
+    detail.contact = contact
+
+    event = pycot.Event()
+    event.version = '2.0'
+    event.event_type = 'a-u-G'
+    event.uid = name
+    event.time = time
+    event.start = time
+    event.stale = time + datetime.timedelta(hours=1)
+    event.how = 'h-g-i-g-o'
+    event.point = point
+    event.detail = detail
+
+    return event
