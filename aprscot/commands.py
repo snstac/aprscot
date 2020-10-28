@@ -4,9 +4,11 @@
 """APRS Cursor-on-Target Gateway Commands."""
 
 import argparse
+import queue
 import time
 
 import aprslib
+import pytak
 
 import aprscot
 
@@ -28,6 +30,16 @@ def cli():
         required=True
     )
     parser.add_argument(
+        '-P', '--cot_port', help='CoT Destination Port'
+    )
+    parser.add_argument(
+        '-B', '--broadcast', help='UDP Broadcast CoT?',
+        action='store_true'
+    )
+    parser.add_argument(
+        '-S', '--stale', help='CoT Stale period, in hours',
+    )
+    parser.add_argument(
         '-p', '--passcode', help='APRS-IS Passcode', default='-1'
     )
     parser.add_argument(
@@ -35,35 +47,49 @@ def cli():
         default='rotate.aprs.net:14580'
     )
     parser.add_argument(
-        '-f', '--filter',
+        '-f', '--aprs_filter',
         help='APRS-IS Filter, see: http://www.aprs-is.net/javAPRSFilter.aspx',
         default='m/10'
     )
 
     opts = parser.parse_args()
 
-    aprs_host: str = opts.aprs_host
-    aprs_port: int = aprscot.DEFAULT_APRSIS_PORT
+    threads: list = []
+    msg_queue: queue.Queue = queue.Queue()
 
-    if ':' in opts.aprs_host:
-        aprs_host, aprs_port = opts.aprs_host.split(':')
+    aprsworker = aprscot.APRSWorker(
+        msg_queue=msg_queue,
+        callsign=opts.callsign,
+        passcode=opts.passcode,
+        aprs_host=opts.aprs_host,
+        aprs_filter=opts.aprs_filter,
+        stale=opts.stale
+    )
+    threads.append(aprsworker)
 
-    aprs_i = aprslib.IS(
-        opts.callsign, opts.passcode, host=aprs_host, port=int(aprs_port))
-    aprs_i.set_filter(opts.filter)
-
-    aprscot_i = aprscot.APRSCoT(aprs_i, opts.cot_host)
+    worker_count = 2
+    for wc in range(0, worker_count - 1):
+        threads.append(
+            pytak.CoTWorker(
+                msg_queue=msg_queue,
+                cot_host=opts.cot_host,
+                cot_port=opts.cot_port,
+                broadcast=opts.broadcast
+            )
+        )
 
     try:
-        aprs_i.connect()
-        aprscot_i.start()
+        [thr.start() for thr in threads]  # NOQA pylint: disable=expression-not-assigned
+        msg_queue.join()
 
-        while aprscot_i.is_alive():
+        while all([thr.is_alive() for thr in threads]):
             time.sleep(0.01)
     except KeyboardInterrupt:
-        aprscot_i.stop()
+        [thr.stop() for thr in
+         threads]  # NOQA pylint: disable=expression-not-assigned
     finally:
-        aprscot_i.stop()
+        [thr.stop() for thr in
+         threads]  # NOQA pylint: disable=expression-not-assigned
 
 
 if __name__ == '__main__':

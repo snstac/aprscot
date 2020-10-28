@@ -15,12 +15,12 @@ APRS Cursor-on-Target Gateway.
 
 """
 
-from .constants import (LOG_FORMAT, LOG_LEVEL, DEFAULT_COT_PORT,  # NOQA
-                        LL_REX, DEFAULT_APRSIS_PORT)
+from .constants import (LOG_FORMAT, LOG_LEVEL, LL_REX,  # NOQA
+                        DEFAULT_APRSIS_PORT, DEFAULT_TYPE, DEFAULT_STALE)
 
 from .functions import aprs_to_cot  # NOQA
 
-from .classes import APRSCoT  # NOQA
+from .classes import APRSWorker  # NOQA
 
 __author__ = 'Greg Albrecht W2GMD <oss@undef.net>'
 __copyright__ = 'Copyright 2020 Greg Albrecht'

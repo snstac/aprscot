@@ -4,10 +4,12 @@
 """APRS Cursor-on-Target Class Definitions."""
 
 import logging
+import queue
 import socket
 import threading
 import time
 
+import aprslib
 import pycot
 
 import aprscot
@@ -18,7 +20,7 @@ __license__ = 'Apache License, Version 2.0'
 __source__ = 'https://github.com/ampledata/aprscot'
 
 
-class APRSCoT(threading.Thread):
+class APRSWorker(threading.Thread):
 
     """APRS Cursor-on-Target Threaded Class."""
 
@@ -31,34 +33,79 @@ class APRSCoT(threading.Thread):
         _logger.addHandler(_console_handler)
         _logger.propagate = False
 
-    def __init__(self, aprs_interface, cot_host: str) -> None:
-        self.aprs_interface = aprs_interface
-        self.cot_host: str = cot_host
+    def __init__(self, msg_queue: queue.Queue, callsign: str,
+                 passcode: int = -1, aprs_host: str = None,
+                 aprs_port: str = None, aprs_filter: str = None,
+                 stale: int = None) -> None:
+        self.msg_queue: queue.Queue = msg_queue
+        self.stale: int = stale
+        self.callsign = callsign
+        self.passcode = passcode
+        self.aprs_filter = aprs_filter
 
-        # Thread stuff:
+        aprs_host: str = aprs_host
+        aprs_port: int = aprs_port or aprscot.DEFAULT_APRSIS_PORT
+
+        if ':' in aprs_host:
+            aprs_host, aprs_port = aprs_host.split(':')
+
+        self.aprs_host = aprs_host
+        self.aprs_port = aprs_port
+        self._logger.info(
+            'Using APRS Host: %s:%s', self.aprs_host, self.aprs_port)
+
+        # Thread setup:
         threading.Thread.__init__(self)
-        self._stopped = False
+        self.daemon = True
+        self._stopper = threading.Event()
 
     def stop(self):
-        """Stops the thread at the next opportunity."""
-        self._stopped = True
-        return self._stopped
+        """Stop the thread at the next opportunity."""
+        self._logger.debug('Stopping ADSBWorker')
+        self._stopper.set()
 
-    def send_cot(self, aprs_frame):
-        """Sends an APRS Frame to a Cursor-on-Target Host."""
+    def stopped(self):
+        """Checks if the thread is stopped."""
+        return self._stopper.isSet()
+
+    def _put_queue(self, aprs_frame: dict) -> bool:
+        self._logger.debug('aprs_frame=%s', aprs_frame)
+        if not aprs_frame:
+            self._logger.warning('Empty APRS Frame')
+            return False
+
         cot_event = aprscot.aprs_to_cot(aprs_frame)
         if cot_event is None:
             return False
 
         rendered_event = cot_event.render(encoding='UTF-8', standalone=True)
 
-        self._logger.debug(
-            'Sending CoT to %s : "%s"', self.cot_host, rendered_event)
+        if not rendered_event:
+            self._logger.warning('Empty CoT Event')
+            return False
 
-        self.net_client.sendall(rendered_event)
+        try:
+            return self.msg_queue.put(rendered_event, True, 10)
+        except queue.Full as exc:
+            self._logger.exception(exc)
+            self._logger.warning(
+                'Lost CoT Event (queue full): "%s"', rendered_event)
+            return False
 
     def run(self):
-        """Runs this Thread, reads APRS & outputs CoT."""
-        self._logger.info('Running APRSCoT Thread...')
-        self.net_client = pycot.NetworkClient(self.cot_host)
-        self.aprs_interface.consumer(self.send_cot)
+        """Runs this Thread, Reads from Pollers."""
+        self._logger.info('Running APRSWorker')
+
+        aprs_i = aprslib.IS(
+            self.callsign,
+            self.passcode,
+            host=self.aprs_host,
+            port=int(self.aprs_port)
+        )
+
+        if self.aprs_filter:
+            self._logger.info('Using APRS Filter: %s', self.aprs_filter)
+            aprs_i.set_filter(self.aprs_filter)
+
+        aprs_i.connect()
+        aprs_i.consumer(self._put_queue)

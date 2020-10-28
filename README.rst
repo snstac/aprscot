@@ -23,7 +23,7 @@ from the Python Package Index (PyPI) (B).
 
 A) To install from this source tree::
 
-    $ git checkout https://github.com/ampledata/aprscot.git
+    $ git clone https://github.com/ampledata/aprscot.git
     $ cd aprscot/
     $ python setup.py install
 
@@ -109,13 +109,3 @@ Copyright 2020 Orion Labs, Inc.
 License
 =======
 Apache License, Version 2.0. See LICENSE for details.
-
-Debugging Cursor-on-Target
-==========================
-The publicly available ATAK source was a good reference for some of the parsing
-errors the ATAK-Civ Development Build was giving me, namely `Invalid CoT
-message received: Missing or invalid CoT event and/or point attributes`. Many
-errors are unfortunately caught in a single try/catch block:
-
-https://github.com/deptofdefense/AndroidTacticalAssaultKit-CIV/blob/6dc1941f45af3f9716e718dccebf42555a8c08fd/commoncommo/core/impl/cotmessage.cpp#L448
-
