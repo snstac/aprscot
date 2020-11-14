@@ -47,7 +47,7 @@ setuptools.setup(
     install_requires=[
         'aprslib',
         'pycot >= 2.5.0',
-        'pytak >= 3.0.0',
+        'pytak >= 2.0.0',
         'gexml'
     ],
     classifiers=[
