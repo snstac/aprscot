@@ -3,14 +3,12 @@
 
 """APRS Cursor-on-Target Class Definitions."""
 
+import asyncio
 import logging
-import queue
-import socket
-import threading
-import time
 
-import aprslib
+import aprslib.parsing
 import pycot
+import pytak
 
 import aprscot
 
@@ -20,29 +18,21 @@ __license__ = 'Apache License, Version 2.0'
 __source__ = 'https://github.com/ampledata/aprscot'
 
 
-class APRSWorker(threading.Thread):
+class APRSWorker(pytak.MessageWorker):
 
-    """APRS Cursor-on-Target Threaded Class."""
+    """APRS Cursor-on-Target Worker Class."""
 
-    _logger = logging.getLogger(__name__)
-    if not _logger.handlers:
-        _logger.setLevel(aprscot.LOG_LEVEL)
-        _console_handler = logging.StreamHandler()
-        _console_handler.setLevel(aprscot.LOG_LEVEL)
-        _console_handler.setFormatter(aprscot.LOG_FORMAT)
-        _logger.addHandler(_console_handler)
-        _logger.propagate = False
+    def __init__(self, event_queue: asyncio.Queue, cot_stale: int,
+                 callsign: str, passcode: int = -1, aprs_host: str = None,
+                 aprs_port: str = None, aprs_filter: str = None) -> None:
+        super().__init__(event_queue, cot_stale)
 
-    def __init__(self, msg_queue: queue.Queue, callsign: str,
-                 passcode: int = -1, aprs_host: str = None,
-                 aprs_port: str = None, aprs_filter: str = None,
-                 stale: int = None) -> None:
-        self.msg_queue: queue.Queue = msg_queue
-        self.stale: int = stale
+        # APRS Parameters:
         self.callsign = callsign
         self.passcode = passcode
         self.aprs_filter = aprs_filter
 
+        # Figure out APRS Host:
         aprs_host: str = aprs_host
         aprs_port: int = aprs_port or aprscot.DEFAULT_APRSIS_PORT
 
@@ -52,61 +42,51 @@ class APRSWorker(threading.Thread):
         self.aprs_host = aprs_host
         self.aprs_port = aprs_port
         self._logger.info(
-            'Using APRS Host: %s:%s', self.aprs_host, self.aprs_port)
+            "Using APRS Host: %s:%s", self.aprs_host, self.aprs_port)
 
-        # Thread setup:
-        threading.Thread.__init__(self)
-        self.daemon = True
-        self._stopper = threading.Event()
+    async def handle_message(self, message: bytes) -> None:
+        self._logger.debug("message='%s'", message)
 
-    def stop(self):
-        """Stop the thread at the next opportunity."""
-        self._logger.debug('Stopping ADSBWorker')
-        self._stopper.set()
+        # Skip control messages from APRS-IS:
+        if b"# " in message[:2]:
+            return
 
-    def stopped(self):
-        """Checks if the thread is stopped."""
-        return self._stopper.isSet()
-
-    def _put_queue(self, aprs_frame: dict) -> bool:
-        self._logger.debug('aprs_frame=%s', aprs_frame)
-        if not aprs_frame:
-            self._logger.warning('Empty APRS Frame')
-            return False
-
-        cot_event = aprscot.aprs_to_cot(aprs_frame)
-        if cot_event is None:
-            return False
-
-        rendered_event = cot_event.render(encoding='UTF-8', standalone=True)
-
-        if not rendered_event:
-            self._logger.warning('Empty CoT Event')
-            return False
-
+        # Some APRS Frame types are not supposed by aprslib yet:
         try:
-            return self.msg_queue.put(rendered_event, True, 10)
-        except queue.Full as exc:
-            self._logger.exception(exc)
-            self._logger.warning(
-                'Lost CoT Event (queue full): "%s"', rendered_event)
-            return False
+            aprs_frame = aprslib.parsing.parse(message)
+        except aprslib.exceptions.UnknownFormat as exc:
+            self._logger.debug(exc)
+            self._logger.debug("Ignoring aprslib.exceptions.UnknownFormat")
+            return
 
-    def run(self):
+        self._logger.debug("aprs_frame=%s", aprs_frame)
+
+        event = aprscot.aprs_to_cot(aprs_frame)
+        if event is None:
+            self._logger.warning("Empty CoT Event")
+            return
+
+        await self._put_event_queue(event)
+
+    async def run(self):
         """Runs this Thread, Reads from Pollers."""
-        self._logger.info('Running APRSWorker')
+        self._logger.info("Running APRSWorker")
 
-        aprs_i = aprslib.IS(
-            self.callsign,
-            self.passcode,
-            host=self.aprs_host,
-            port=int(self.aprs_port)
-        )
+        reader, writer = await asyncio.open_connection(
+            self.aprs_host, int(self.aprs_port))
 
+        _login = f"user {self.callsign} pass {self.passcode} vers aprscot v4.0.0"
         if self.aprs_filter:
-            self._logger.info('Using APRS Filter: %s', self.aprs_filter)
-            aprs_i.set_filter(self.aprs_filter)
+            self._logger.info("Using APRS Filter: '%s'", self.aprs_filter)
+            _login = f"{_login} filter {self.aprs_filter}"
+        _login = f"{_login}\r\n"
 
-        aprs_i.connect()
-        self.msg_queue.put(aprscot.hello_event().render(encoding='UTF-8', standalone=True))
-        aprs_i.consumer(self._put_queue)
+        b_login = bytes(_login, 'UTF-8')
+        print(b_login)
+        writer.write(b_login)
+        await writer.drain()
+
+        while 1:
+            frame = await reader.readline()
+            if frame:
+                await self.handle_message(frame)

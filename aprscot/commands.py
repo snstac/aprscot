@@ -5,116 +5,79 @@
 
 import argparse
 import asyncio
+import os
 import queue
+import sys
 import time
+import urllib
 
 import aprslib
 import pytak
 
 import aprscot
 
+# Python 3.6 support:
+if sys.version_info[:2] >= (3, 7):
+    from asyncio import get_running_loop
+else:
+    from asyncio import _get_running_loop as get_running_loop
+
+
 __author__ = 'Greg Albrecht W2GMD <oss@undef.net>'
 __copyright__ = 'Copyright 2020 Orion Labs, Inc.'
 __license__ = 'Apache License, Version 2.0'
 __source__ = 'https://github.com/ampledata/aprscot'
 
+
 async def main(opts):
-    # Get a reference to the event loop as we plan to use
-    # low-level APIs.
     loop = asyncio.get_running_loop()
-    on_con_lost = loop.create_future()
+    tx_queue: asyncio.Queue = asyncio.Queue()
+    rx_queue: asyncio.Queue = asyncio.Queue()
+    cot_url: urllib.parse.ParseResult = urllib.parse.urlparse(opts.cot_url)
+    # Create our CoT Event Queue Worker
+    reader, writer = await pytak.protocol_factory(cot_url)
+    write_worker = pytak.EventTransmitter(tx_queue, writer)
+    read_worker = pytak.EventReceiver(rx_queue, reader)
 
-    threads: list = []
-    msg_queue: queue.Queue = queue.Queue()
-
-    aprsworker = aprscot.APRSWorker(
-        msg_queue=msg_queue,
+    # Create our Message Source (You need to implement this!)
+    message_worker = aprscot.APRSWorker(
+        tx_queue,
+        opts.cot_stale,
         callsign=opts.callsign,
         passcode=opts.passcode,
         aprs_host=opts.aprs_host,
-        aprs_filter=opts.aprs_filter,
-        stale=opts.stale
+        aprs_filter=opts.aprs_filter
     )
-    threads.append(aprsworker)
 
-    cot_host, cot_port = pytak.split_host(opts.cot_host, opts.cot_port)
-    transport = None
+    await tx_queue.put(aprscot.hello_event())
 
-    try:
-        if opts.broadcast:
-            threads.append(
-                pytak.CoTWorker(
-                    msg_queue=msg_queue,
-                    cot_host=cot_host,
-                    cot_port=cot_port,
-                    broadcast=opts.broadcast
-                )
-            )
+    done, pending = await asyncio.wait(
+        set([message_worker.run(), read_worker.run(), write_worker.run()]),
+        return_when=asyncio.FIRST_COMPLETED)
 
-        [thr.start() for thr in threads]  # NOQA pylint: disable=expression-not-assigned
-        msg_queue.join()
-
-        if not opts.broadcast:
-            transport, protocol = await loop.create_connection(
-                lambda: pytak.AsyncNetworkClient(msg_queue, on_con_lost),
-                cot_host, cot_port)
-
-            async def _work_queue():
-                #self._logger.debug('Working Queue')
-                while not on_con_lost.done():
-                    try:
-                        msg = await loop.run_in_executor(
-                            None,
-                            msg_queue.get,
-                            (True, 1)
-                        )
-                        if not msg:
-                            continue
-                        #self._logger.debug('From msg_queue: "%s"', msg)
-                        transport.write(msg)
-                    except queue.Empty:
-                        pass
-
-            work_queue = _work_queue()
-            await work_queue # loop.run_until_complete(work_queue)
-            await on_con_lost
-        else:
-            while all([thr.is_alive() for thr in threads]):
-                print(on_con_lost)
-                time.sleep(0.01)
-    except KeyboardInterrupt:
-        [thr.stop() for thr in
-         threads]  # NOQA pylint: disable=expression-not-assigned
-    finally:
-        [thr.stop() for thr in
-         threads]  # NOQA pylint: disable=expression-not-assigned
-        if not opts.broadcast and transport:
-            transport.close()
-
-    # Register the socket to wait for data.
-
+    for task in done:
+        print(f"Task completed: {task}")
 
 
 def cli():
     """Command Line interface for APRS Cursor-on-Target Gateway."""
 
     parser = argparse.ArgumentParser()
+
     parser.add_argument(
-        '-c', '--callsign', help='APRS-IS Login Callsign', required=True
-    )
-    parser.add_argument(
-        '-C', '--cot_host', help='Cursor-on-Target Host or Host:Port',
+        '-U', '--cot_url', help='URL to CoT Destination.',
         required=True
     )
     parser.add_argument(
-        '-P', '--cot_port', help='CoT Destination Port'
+        '-K', '--fts_token', help='FreeTAKServer REST API Token.'
     )
     parser.add_argument(
-        '-B', '--broadcast', help='UDP Broadcast CoT?',
-        action='store_true'
+        '-S', '--cot_stale', help='CoT Stale period, in seconds',
     )
+
     parser.add_argument(
-        '-S', '--stale', help='CoT Stale period, in hours',
+        '-c', '--callsign', help='APRS-IS Login Callsign',
+        required=True
     )
     parser.add_argument(
         '-p', '--passcode', help='APRS-IS Passcode', default='-1'
@@ -131,7 +94,14 @@ def cli():
 
     opts = parser.parse_args()
 
-    asyncio.run(main(opts))
+    if sys.version_info[:2] >= (3, 7):
+        asyncio.run(main(opts), debug=bool(os.environ.get('DEBUG')))
+    else:
+        loop = asyncio.get_event_loop()
+        try:
+            loop.run_until_complete(main(opts))
+        finally:
+            loop.close()
 
 
 if __name__ == '__main__':

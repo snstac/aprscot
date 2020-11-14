@@ -15,8 +15,8 @@ APRS Cursor-on-Target Gateway.
 
 """
 
-from .constants import (LOG_FORMAT, LOG_LEVEL, LL_REX,  # NOQA
-                        DEFAULT_APRSIS_PORT, DEFAULT_TYPE, DEFAULT_STALE)
+from .constants import (LOG_FORMAT, LOG_LEVEL, DEFAULT_APRSIS_PORT,  # NOQA
+                        DEFAULT_EVENT_TYPE, DEFAULT_EVENT_STALE)
 
 from .functions import aprs_to_cot, hello_event  # NOQA
 

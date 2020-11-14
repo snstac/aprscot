@@ -30,5 +30,5 @@ LL_REX = re.compile(
 )
 
 DEFAULT_APRSIS_PORT: int = 14580
-DEFAULT_TYPE: str = 'a-f-G-I-U-T-r'
-DEFAULT_STALE: int = 3600
+DEFAULT_EVENT_TYPE: str = "a-f-G-I-U-T-r"
+DEFAULT_EVENT_STALE: str = 3600
