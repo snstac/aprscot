@@ -82,7 +82,6 @@ class APRSWorker(pytak.MessageWorker):
         _login = f"{_login}\r\n"
 
         b_login = bytes(_login, 'UTF-8')
-        print(b_login)
         writer.write(b_login)
         await writer.drain()
 
