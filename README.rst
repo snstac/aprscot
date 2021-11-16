@@ -1,9 +1,11 @@
 aprscot - APRS Cursor-on-Target Gateway.
 ****************************************
 
-.. image:: docs/screenshot2-25.png
-   :alt: Screenshot of APRS points in ATAK-Div Developer Edition.
-   :target: docs/screenshot2-50.png
+IF YOU HAVE AN URGENT OPERATIONAL NEED: Email ops@undef.net or call/sms +1-415-598-8226
+
+.. image:: https://raw.githubusercontent.com/ampledata/aprscot/main/docs/screenshot_1637083240_16797-25p.png
+   :alt: Screenshot of APRS PLI in ATAK..
+   :target: https://raw.githubusercontent.com/ampledata/aprscot/main/docs/screenshot_1637083240_16797.png
 
 
 aprscot receives APRS Frames from APRS-IS and outputs them in as
@@ -66,13 +68,6 @@ last known location to the Cursor-on-Target host at 10.1.2.3 port 8087 (TCP)::
 
     aprscot -c W2GMD-9 -U tcp:10.1.2.3:8087 -f 'm/50'
 
-Build Status
-============
-
-.. image:: https://travis-ci.com/ampledata/aprscot.svg?branch=main
-    :target: https://travis-ci.com/ampledata/aprscot
-
-
 Source
 ======
 Github: https://github.com/ampledata/aprscot
@@ -85,7 +80,7 @@ https://ampledata.org/
 
 Copyright
 =========
-Copyright 2020 Orion Labs, Inc.
+Copyright 2021 Greg Albrecht
 
 `Automatic Packet Reporting System (APRS) <http://www.aprs.org/>`_ is Copyright Bob Bruninga WB4APR wb4apr@amsat.org
 

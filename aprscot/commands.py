@@ -7,13 +7,9 @@ import argparse
 import asyncio
 import configparser
 import logging
-import os
-import queue
 import sys
-import time
 import urllib
 
-import aprslib
 import pytak
 
 import aprscot

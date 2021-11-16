@@ -11,14 +11,14 @@ import pytak
 
 import aprscot
 
-__author__ = 'Greg Albrecht W2GMD <oss@undef.net>'
-__copyright__ = 'Copyright 2021 Greg Albrecht'
-__license__ = 'Apache License, Version 2.0'
-__source__ = 'https://github.com/ampledata/aprscot'
+__author__ = "Greg Albrecht W2GMD <oss@undef.net>"
+__copyright__ = "Copyright 2021 Greg Albrecht"
+__license__ = "Apache License, Version 2.0"
+__source__ = "https://github.com/ampledata/aprscot"
 
 
 def aprs_to_cot_xml(aprs_frame: dict, config: dict) -> \
-        [xml.etree.ElementTree, None]:
+        [xml.etree.ElementTree, None]:  # NOQA pylint: disable=too-many-locals,too-many-statements
     """Converts an APRS Frame to a Cursor-on-Target Event."""
     time = datetime.datetime.now(datetime.timezone.utc)
 
@@ -26,7 +26,7 @@ def aprs_to_cot_xml(aprs_frame: dict, config: dict) -> \
     lon = aprs_frame.get("longitude")
 
     if not lat or not lon:
-        return
+        return None
 
     callsign = aprs_frame.get("from")
     name = callsign
@@ -109,6 +109,8 @@ def aprs_to_cot(aprs_frame: dict, config: dict) -> str:
     """
     Converts an APRS Frame to a Cursor-on-Target Event, as a String.
     """
+    cot_str: str = ""
     cot_xml: xml.etree.ElementTree = aprs_to_cot_xml(aprs_frame, config)
     if cot_xml:
-        return xml.etree.ElementTree.tostring(cot_xml)
+        cot_str = xml.etree.ElementTree.tostring(cot_xml)
+    return cot_str
