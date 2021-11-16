@@ -73,7 +73,7 @@ def cli():
     if sys.version_info[:2] >= (3, 7):
         asyncio.run(main(config), debug=config["aprscot"].getboolean("DEBUG"))
     else:
-        loop = get_running_loop()
+        loop = asyncio.get_event_loop()
         try:
             loop.run_until_complete(main(config))
         finally:
