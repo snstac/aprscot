@@ -7,66 +7,119 @@ IF YOU HAVE AN URGENT OPERATIONAL NEED: Email ops@undef.net or call/sms +1-415-5
    :alt: Screenshot of APRS PLI in ATAK..
    :target: https://raw.githubusercontent.com/ampledata/aprscot/main/docs/screenshot_1637083240_16797.png
 
+The ``aprscot`` "APRS to Cursor On Target (COT) Gateway" transforms APRS Frames
+into COT Position Location Information (PLI) Points, compatible with
+Situational Awareness (SA) and Common Operating Picture (COP) applications such
+as Android Team Awareness Kit (ATAK), WinTAK, RaptorX, COPERS, et al.
 
-aprscot receives APRS Frames from APRS-IS and outputs them in as
-Cursor-on-Target (CoT) PLI, for use with CoT systems such as ATAK, WinTAK,
-RaptorX, et al. See https://www.civtak.org/ for more information on the TAK
-program.
+Features of ``aprscot``:
 
-Currently supports APRS-IS and Location-type APRS messages, and sending to TCP
-CoT Hosts & TAK Servers.
+* Handles APRS-IS transported APRS Frames from over-the-air or Internet-based stations.
+* Can transform APRS station callsign, COT Type and COT Icon for display in TAK systems.
+* Can run as a service ('daemon') on any Linux system.
+* Can send COT Events to any destination supported by `PyTAK <https://github.com/ampledata/pytak>`_: TLS/SSL, TCP, UDP, UDP Multicast.
 
 See also Alan Barrow's aprstak: https://github.com/pinztrek/aprstak
+
+Support aprscot Development
+============================
+
+aprscot has been developed for the Disaster Response, Public Safety and
+Frontline community at-large. This software is currently provided at no-cost to
+our end-users. All development is self-funded and all time-spent is entirely
+voluntary. Any contribution you can make to further these software development
+efforts, and the mission of aprscot to provide ongoing SA capabilities to our
+end-users, is greatly appreciated:
+
+.. image:: https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png
+    :target: https://www.buymeacoffee.com/ampledata
+    :alt: Support aprscot development: Buy me a coffee!
 
 Installation
 ============
 
-The command-line daemon `aprscot` can be install from this source tree (A), or
-from the Python Package Index (PyPI) (B).
+The APRS to COT gateway is provided by a command-line tol called `aprscot`:
 
-A) To install from this source tree::
+Installing as a Debian/Ubuntu Package::
+
+    $ wget https://github.com/ampledata/pytak/releases/latest/download/python3-pytak_latest_all.deb
+    $ sudo apt install -f ./python3-pytak_latest_all.deb
+    $ wget https://github.com/ampledata/aprscot/releases/latest/download/python3-aprscot_latest_all.deb
+    $ sudo apt install -f ./python3-aprscot_latest_all.deb
+
+
+Install from the Python Package Index (PyPI)::
+
+    $ pip install aprscot
+
+
+Install from this source tree::
 
     $ git clone https://github.com/ampledata/aprscot.git
     $ cd aprscot/
     $ python setup.py install
 
-B) To install from PyPI::
-
-    $ pip install aprscot
-
 
 Usage
 =====
 
-The `aprscot` daemon has several runtime arguments::
 
-    $ aprscot --help
-      usage: aprscot [-h] -U COT_URL [-K FTS_TOKEN] [-S COT_STALE] -c CALLSIGN
-                     [-p PASSCODE] [-a APRS_HOST] [-f APRS_FILTER]
+The `inrcot` program has one command-line argument::
 
-      optional arguments:
-        -h, --help            show this help message and exit
-        -U COT_URL, --cot_url COT_URL
-                              URL to CoT Destination.
-        -K FTS_TOKEN, --fts_token FTS_TOKEN
-                              FreeTAKServer REST API Token.
-        -S COT_STALE, --cot_stale COT_STALE
-                              CoT Stale period, in seconds
-        -c CALLSIGN, --callsign CALLSIGN
-                              APRS-IS Login Callsign
-        -p PASSCODE, --passcode PASSCODE
-                              APRS-IS Passcode
-        -a APRS_HOST, --aprs_host APRS_HOST
-                              APRS-IS Host (or Host:Port).
-        -f APRS_FILTER, --aprs_filter APRS_FILTER
-                              APRS-IS Filter, see: http://www.aprs-
-                              is.net/javAPRSFilter.aspx
+    $ inrcot -h
+    usage: inrcot [-h] [-c CONFIG_FILE]
 
+    optional arguments:
+      -h, --help            show this help message and exit
+      -c CONFIG_FILE, --CONFIG_FILE CONFIG_FILE
 
-The following example forwards all APRS Frames within 50 meters of W2GMD-9's
-last known location to the Cursor-on-Target host at 10.1.2.3 port 8087 (TCP)::
+You must create a configuration file, see `example-config.ini` in the source
+respository.
 
-    aprscot -c W2GMD-9 -U tcp:10.1.2.3:8087 -f 'm/50'
+An example config::
+
+    [inrcot]
+    COT_URL = tcp:takserver.example.com:8088
+    POLL_INTERVAL = 120
+
+    [inrcot_feed_aaa]
+    FEED_URL = https://share.garmin.com/Feed/Share/aaa
+
+Multiple feeds can be added by creating multiple `inrcot_feed` sections::
+
+    [inrcot]
+    COT_URL = tcp:takserver.example.com:8088
+    POLL_INTERVAL = 120
+
+    [inrcot_feed_xxx]
+    FEED_URL = https://share.garmin.com/Feed/Share/xxx
+
+    [inrcot_feed_yyy]
+    FEED_URL = https://share.garmin.com/Feed/Share/yyy
+
+Individual feeds CoT output can be customized as well::
+
+    [inrcot]
+    COT_URL = tcp:takserver.example.com:8088
+    POLL_INTERVAL = 120
+
+    [inrcot_feed_zzz]
+    FEED_URL = https://share.garmin.com/Feed/Share/zzz
+    COT_TYPE = a-f-G-U-C
+    COT_STALE = 600
+    COT_NAME = Team Lead
+    COT_ICON = my_package/team_lead.png
+
+Protected feeds are also supported::
+
+    [inrcot]
+    COT_URL = tcp:takserver.example.com:8088
+    POLL_INTERVAL = 120
+
+    [inrcot_feed_ppp]
+    FEED_URL = https://share.garmin.com/Feed/Share/ppp
+    FEED_USERNAME = secretsquirrel
+    FEED_PASSWORD = supersecret
 
 Source
 ======

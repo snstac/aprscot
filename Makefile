@@ -18,7 +18,7 @@ install_requirements:
 install_requirements_test:
 	pip install -r requirements_test.txt
 
-develop: remember
+develop:
 	pip install -e .
 
 install:
