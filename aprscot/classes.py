@@ -31,7 +31,7 @@ class APRSWorker(pytak.MessageWorker):
             "CALLSIGN", aprscot.DEFAULT_APRSIS_CALLSIGN)
 
         self.aprs_filter: str = config["aprscot"].get(
-            "APRS_FILTER", aprscot.DEFAULT_APRSIS_FILTER)
+            "APRSIS_FILTER", aprscot.DEFAULT_APRSIS_FILTER)
 
         # Figure out APRS Host:
         aprs_host: str = config["aprscot"].get(

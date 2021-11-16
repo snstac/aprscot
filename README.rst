@@ -44,6 +44,8 @@ Installing as a Debian/Ubuntu Package::
 
     $ wget https://github.com/ampledata/pytak/releases/latest/download/python3-pytak_latest_all.deb
     $ sudo apt install -f ./python3-pytak_latest_all.deb
+    $ wget https://github.com/ampledata/aprs-python/releases/latest/download/python3-aprslib_latest_all.deb
+    $ sudo apt install -f ./python3-aprslib_latest_all.deb
     $ wget https://github.com/ampledata/aprscot/releases/latest/download/python3-aprscot_latest_all.deb
     $ sudo apt install -f ./python3-aprscot_latest_all.deb
 
@@ -63,63 +65,43 @@ Install from this source tree::
 Usage
 =====
 
+The `aprscot` program has one command-line argument::
 
-The `inrcot` program has one command-line argument::
-
-    $ inrcot -h
-    usage: inrcot [-h] [-c CONFIG_FILE]
+    $ aprscot -h
+    usage: aprscot [-h] [-c CONFIG_FILE]
 
     optional arguments:
       -h, --help            show this help message and exit
       -c CONFIG_FILE, --CONFIG_FILE CONFIG_FILE
 
 You must create a configuration file, see `example-config.ini` in the source
-respository.
+repository.
 
 An example config::
 
-    [inrcot]
+    [aprscot]
     COT_URL = tcp:takserver.example.com:8088
-    POLL_INTERVAL = 120
 
-    [inrcot_feed_aaa]
-    FEED_URL = https://share.garmin.com/Feed/Share/aaa
 
-Multiple feeds can be added by creating multiple `inrcot_feed` sections::
+`APRS-IS Server-side Filter Commands <http://www.aprs-is.net/javAPRSFilter.aspx>`_ can be used::
 
-    [inrcot]
+    [aprscot]
     COT_URL = tcp:takserver.example.com:8088
-    POLL_INTERVAL = 120
+    APRSIS_FILTER = f/W6PW-10/50
 
-    [inrcot_feed_xxx]
-    FEED_URL = https://share.garmin.com/Feed/Share/xxx
+PLI Transforms can be created using per-station sections::
 
-    [inrcot_feed_yyy]
-    FEED_URL = https://share.garmin.com/Feed/Share/yyy
-
-Individual feeds CoT output can be customized as well::
-
-    [inrcot]
+    [aprscot]
     COT_URL = tcp:takserver.example.com:8088
-    POLL_INTERVAL = 120
 
-    [inrcot_feed_zzz]
-    FEED_URL = https://share.garmin.com/Feed/Share/zzz
+    [W2GMD-9]
     COT_TYPE = a-f-G-U-C
     COT_STALE = 600
-    COT_NAME = Team Lead
-    COT_ICON = my_package/team_lead.png
+    COT_NAME = Medic 52
 
-Protected feeds are also supported::
+    [NB6F-2]
+    COT_NAME = Transport 2
 
-    [inrcot]
-    COT_URL = tcp:takserver.example.com:8088
-    POLL_INTERVAL = 120
-
-    [inrcot_feed_ppp]
-    FEED_URL = https://share.garmin.com/Feed/Share/ppp
-    FEED_USERNAME = secretsquirrel
-    FEED_PASSWORD = supersecret
 
 Source
 ======
