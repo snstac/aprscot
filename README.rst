@@ -3,7 +3,7 @@ aprscot - APRS Cursor-on-Target Gateway.
 
 IF YOU HAVE AN URGENT OPERATIONAL NEED: Email ops@undef.net or call/sms +1-415-598-8226
 
-.. image:: https://raw.githubusercontent.com/ampledata/aprscot/main/docs/screenshot_1637083240_16797-25p.png
+.. image:: https://raw.githubusercontent.com/ampledata/aprscot/main/docs/screenshot_1637083240_16797-50p.png
    :alt: Screenshot of APRS PLI in ATAK..
    :target: https://raw.githubusercontent.com/ampledata/aprscot/main/docs/screenshot_1637083240_16797.png
 
