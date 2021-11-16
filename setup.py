@@ -13,9 +13,9 @@ import sys
 import setuptools
 
 __title__ = 'aprscot'
-__version__ = '4.0.0'
+__version__ = '5.0.0b1'
 __author__ = 'Greg Albrecht W2GMD <oss@undef.net>'
-__copyright__ = 'Copyright 2020 Orion Labs, Inc.'
+__copyright__ = 'Copyright 2021 Greg Albrecht'
 __license__ = 'Apache License, Version 2.0'
 
 
@@ -35,28 +35,27 @@ setuptools.setup(
     version=__version__,
     packages=[__title__],
     package_dir={__title__: __title__},
-    url=f'https://github.com/ampledata/{__title__}',
-    description='APRS Cursor-on-Target Gateway.',
-    author='Greg Albrecht',
-    author_email='oss@undef.net',
-    package_data={'': ['LICENSE']},
-    license=open('LICENSE').read(),
-    long_description=open('README.rst').read(),
+    url=f"https://github.com/ampledata/{__title__}",
+    description="APRS Cursor-on-Target Gateway.",
+    author="Greg Albrecht",
+    author_email="oss@undef.net",
+    package_data={"": ["LICENSE"]},
+    license="Apache License, Version 2.0",
+    long_description=open("README.rst").read(),
+    long_description_content_type="text/x-rst",
     zip_safe=False,
     include_package_data=True,
     install_requires=[
-        'aprslib',
-        'pycot >= 2.5.0',
-        'pytak >= 3.0.0',
-        'gexml'
+        "aprslib",
+        "pytak >= 3.0.0"
     ],
     classifiers=[
-        'Topic :: Communications :: Ham Radio',
-        'Programming Language :: Python',
-        'License :: OSI Approved :: Apache Software License'
+        "Topic :: Communications :: Ham Radio",
+        "Programming Language :: Python",
+        "License :: OSI Approved :: Apache Software License"
     ],
     keywords=[
-        'Ham Radio', 'APRS', 'Cursor on Target', 'ATAK', 'TAK', 'CoT'
+        "Ham Radio", "APRS", "Cursor on Target", "ATAK", "TAK", "CoT"
     ],
-    entry_points={'console_scripts': ['aprscot = aprscot.commands:cli']}
+    entry_points={"console_scripts": ["aprscot = aprscot.commands:cli"]}
 )

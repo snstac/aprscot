@@ -8,7 +8,7 @@ import os
 import re
 
 __author__ = 'Greg Albrecht W2GMD <oss@undef.net>'
-__copyright__ = 'Copyright 2020 Orion Labs, Inc.'
+__copyright__ = 'Copyright 2021 Greg Albrecht'
 __license__ = 'Apache License, Version 2.0'
 __source__ = 'https://github.com/ampledata/aprscot'
 
@@ -22,7 +22,7 @@ if bool(os.environ.get('DEBUG')):
 else:
     LOG_LEVEL = logging.INFO
     LOG_FORMAT = logging.Formatter(
-        ('%(asctime)s aprscot %(levelname)s - %(message)s'))
+        ('%(asctime)s aprscot - %(message)s'))
 
 # 3833.55N/12248.93W
 LL_REX = re.compile(
@@ -30,5 +30,9 @@ LL_REX = re.compile(
 )
 
 DEFAULT_APRSIS_PORT: int = 14580
-DEFAULT_EVENT_TYPE: str = "a-f-G-I-U-T-r"
-DEFAULT_EVENT_STALE: str = 3600
+DEFAULT_APRSIS_HOST: str = "rotate.aprs.net"
+DEFAULT_APRSIS_CALLSIGN: str = "APRSCOT"
+DEFAULT_APRSIS_FILTER: str = "f/SUNSET/50"
+
+DEFAULT_COT_TYPE: str = "a-f-G-I-U-T-r"
+DEFAULT_COT_STALE: str = 3600

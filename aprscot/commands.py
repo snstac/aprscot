@@ -5,6 +5,8 @@
 
 import argparse
 import asyncio
+import configparser
+import logging
 import os
 import queue
 import sys
@@ -20,39 +22,34 @@ import aprscot
 if sys.version_info[:2] >= (3, 7):
     from asyncio import get_running_loop
 else:
-    from asyncio import _get_running_loop as get_running_loop
+    from asyncio import _get_running_loop as get_running_loop  # NOQA pylint: disable=no-name-in-module
 
 
 __author__ = 'Greg Albrecht W2GMD <oss@undef.net>'
-__copyright__ = 'Copyright 2020 Orion Labs, Inc.'
+__copyright__ = 'Copyright 2021 Greg Albrecht'
 __license__ = 'Apache License, Version 2.0'
 __source__ = 'https://github.com/ampledata/aprscot'
 
 
-async def main(opts):
-    loop = asyncio.get_running_loop()
+async def main(config):
+    """Main program function. Sets Queues, Executes Workers."""
     tx_queue: asyncio.Queue = asyncio.Queue()
     rx_queue: asyncio.Queue = asyncio.Queue()
-    cot_url: urllib.parse.ParseResult = urllib.parse.urlparse(opts.cot_url)
+
+    cot_url: urllib.parse.ParseResult = urllib.parse.urlparse(
+        config["aprscot"].get("COT_URL"))
+
     # Create our CoT Event Queue Worker
     reader, writer = await pytak.protocol_factory(cot_url)
     write_worker = pytak.EventTransmitter(tx_queue, writer)
     read_worker = pytak.EventReceiver(rx_queue, reader)
 
-    # Create our Message Source (You need to implement this!)
-    message_worker = aprscot.APRSWorker(
-        tx_queue,
-        opts.cot_stale,
-        callsign=opts.callsign,
-        passcode=opts.passcode,
-        aprs_host=opts.aprs_host,
-        aprs_filter=opts.aprs_filter
-    )
+    message_worker = aprscot.APRSWorker(tx_queue, config)
 
-    await tx_queue.put(aprscot.hello_event())
+    await tx_queue.put(pytak.hello_event("aprscot"))
 
-    done, pending = await asyncio.wait(
-        set([message_worker.run(), read_worker.run(), write_worker.run()]),
+    done, _ = await asyncio.wait(
+        {message_worker.run(), read_worker.run(), write_worker.run()},
         return_when=asyncio.FIRST_COMPLETED)
 
     for task in done:
@@ -62,47 +59,30 @@ async def main(opts):
 def cli():
     """Command Line interface for APRS Cursor-on-Target Gateway."""
 
+    # Get cli arguments:
     parser = argparse.ArgumentParser()
 
-    parser.add_argument(
-        '-U', '--cot_url', help='URL to CoT Destination.',
-        required=True
-    )
-    parser.add_argument(
-        '-K', '--fts_token', help='FreeTAKServer REST API Token.'
-    )
-    parser.add_argument(
-        '-S', '--cot_stale', help='CoT Stale period, in seconds',
-    )
+    parser.add_argument("-c", "--CONFIG_FILE", dest="CONFIG_FILE",
+                        default="config.ini", type=str)
+    namespace = parser.parse_args()
+    cli_args = {k: v for k, v in vars(namespace).items() if v is not None}
 
-    parser.add_argument(
-        '-c', '--callsign', help='APRS-IS Login Callsign',
-        required=True
-    )
-    parser.add_argument(
-        '-p', '--passcode', help='APRS-IS Passcode', default='-1'
-    )
-    parser.add_argument(
-        '-a', '--aprs_host', help='APRS-IS Host (or Host:Port).',
-        default='rotate.aprs.net:14580'
-    )
-    parser.add_argument(
-        '-f', '--aprs_filter',
-        help='APRS-IS Filter, see: http://www.aprs-is.net/javAPRSFilter.aspx',
-        default='m/10'
-    )
+    # Read config file:
+    config = configparser.ConfigParser()
 
-    opts = parser.parse_args()
+    config_file = cli_args.get("CONFIG_FILE")
+    logging.info("Reading configuration from %s", config_file)
+    config.read(config_file)
 
     if sys.version_info[:2] >= (3, 7):
-        asyncio.run(main(opts), debug=bool(os.environ.get('DEBUG')))
+        asyncio.run(main(config), debug=config["aprscot"].getboolean("DEBUG"))
     else:
-        loop = asyncio.get_event_loop()
+        loop = get_running_loop()
         try:
-            loop.run_until_complete(main(opts))
+            loop.run_until_complete(main(config))
         finally:
             loop.close()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     cli()
