@@ -32,7 +32,7 @@ jobs:
         run: |
           python3 setup.py --command-packages=stdeb.command bdist_deb
           ls -al deb_dist/
-          cp deb_dist/python3-inrcot_*_all.deb deb_dist/python3-inrcot_latest_all.deb
+          cp deb_dist/python3-aprscot_*_all.deb deb_dist/python3-aprscot_latest_all.deb
 
       - uses: actions/upload-artifact@master
         with:
