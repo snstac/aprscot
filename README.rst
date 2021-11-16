@@ -38,7 +38,7 @@ end-users, is greatly appreciated:
 Installation
 ============
 
-The APRS to COT gateway is provided by a command-line tol called `aprscot`:
+The APRS to COT gateway is provided by a command-line tool called `aprscot`:
 
 Installing as a Debian/Ubuntu Package::
 
