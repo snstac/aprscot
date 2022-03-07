@@ -60,8 +60,10 @@ class APRSWorker(pytak.MessageWorker):
         try:
             aprs_frame = aprslib.parsing.parse(message)
         except aprslib.exceptions.UnknownFormat as exc:
-            self._logger.debug(exc)
             self._logger.warning("Unhandled APRS Frame: '%s'", message)
+            return
+        except aprslib.exceptions.ParseError as exc2:
+            self._logger.warning("Invalid Format: '%s'", message)
             return
 
         # self._logger.debug("aprs_frame=%s", aprs_frame)
