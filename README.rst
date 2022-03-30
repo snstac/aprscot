@@ -21,7 +21,7 @@ Features of ``aprscot``:
 
 See also:
 
-* Hayt's APRS-TAK ATAK Plugin: https://drive.google.com/drive/folders/1o8tsalgxUGxdg2HiDw5xVu_-bnr63F3d
+* Hayt's `APRS-TAK ATAK Plugin <https://drive.google.com/drive/folders/1o8tsalgxUGxdg2HiDw5xVu_-bnr63F3d>`_
 * Alan Barrow's aprstak: https://github.com/pinztrek/aprstak
 
 Support aprscot Development
