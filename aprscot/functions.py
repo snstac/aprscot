@@ -73,7 +73,7 @@ def aprs_to_cot_xml(aprs_frame: dict, config: dict) -> ET.Element:  # NOQA pylin
     contact = ET.Element("contact")
     contact.set("callsign", f"{callsign} (APRS)")
 
-    track = E.Element("track")
+    track = ET.Element("track")
     track.set("course", "9999999.0")
 
     detail = ET.Element("detail")
