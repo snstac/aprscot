@@ -7,10 +7,17 @@ IF YOU HAVE AN URGENT OPERATIONAL NEED: Email ops@undef.net or call/sms +1-415-5
    :alt: Screenshot of APRS PLI in ATAK..
    :target: https://raw.githubusercontent.com/ampledata/aprscot/main/docs/screenshot_1637083240_16797.png
 
-The ``aprscot`` "APRS to Cursor On Target (COT) Gateway" transforms APRS 
-Frames into COT Position Location Information (PLI) Points, compatible with
-Situational Awareness (SA) and Common Operating Picture (COP) applications 
-such as Android Team Awareness Kit (ATAK), WinTAK, RaptorX, COPERS, et al.
+The ``aprscot`` "APRS to Cursor On Target (COT) Gateway" provides beyond 
+line-of-sight blue force tracking capabilities using commercial off the shelf 
+components. This gateway uses the Automatic Packet Reporting System (APRS) 
+and APRS-IS network to forward APRS position reports to Cursor On Target (COT) 
+clients such as the Android Team Awareness Kit (ATAK), WinTAK, et al. Other 
+situational awareness & common operating picture platforms are supported 
+through use of COT, such as TAKX & COPERS.
+
+APRS Frames can also be transformed or callsigns normalized before forwarding 
+as COT.  Almost any network destination is available, including TCP & UDP 
+Mulitcast.
 
 Features of ``aprscot``:
 
