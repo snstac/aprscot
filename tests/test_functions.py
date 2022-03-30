@@ -8,7 +8,7 @@ Tests for APRS Cursor-on-Target Gateway.
 ~~~~
 
 :author: Greg Albrecht W2GMD <oss@undef.net>
-:copyright: Copyright 2021 Greg Albrecht
+:copyright: Copyright 2022 Greg Albrecht
 :license: Apache License, Version 2.0
 :source: <https://github.com/ampledata/aprscot>
 """

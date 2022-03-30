@@ -2,7 +2,7 @@
 #
 # Source:: https://github.com/ampledata/aprscot
 # Author:: Greg Albrecht W2GMD <oss@undef.net>
-# Copyright:: Copyright 2021 Greg Albrecht
+# Copyright:: Copyright 2022 Greg Albrecht
 # License:: Apache License, Version 2.0
 #
 

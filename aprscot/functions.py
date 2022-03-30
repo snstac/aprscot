@@ -5,20 +5,23 @@
 
 import datetime
 
-import xml.etree.ElementTree
+from typing import List
+
+import xml.etree.ElementTree as ET
 
 import pytak
 
 import aprscot
 
+
 __author__ = "Greg Albrecht W2GMD <oss@undef.net>"
-__copyright__ = "Copyright 2021 Greg Albrecht"
+__copyright__ = "Copyright 2022 Greg Albrecht"
 __license__ = "Apache License, Version 2.0"
 __source__ = "https://github.com/ampledata/aprscot"
 
 
 def aprs_to_cot_xml(aprs_frame: dict, config: dict) -> \
-        [xml.etree.ElementTree, None]:  # NOQA pylint: disable=too-many-locals,too-many-statements
+                    List[ET.Element, None]:  # NOQA pylint: disable=too-many-locals,too-many-statements
     """Converts an APRS Frame to a Cursor-on-Target Event."""
     time = datetime.datetime.now(datetime.timezone.utc)
 
@@ -50,7 +53,7 @@ def aprs_to_cot_xml(aprs_frame: dict, config: dict) -> \
                  datetime.timedelta(
                      seconds=int(_cot_stale))).strftime(pytak.ISO_8601_UTC)
 
-    point = xml.etree.ElementTree.Element("point")
+    point = ET.Element("point")
     point.set("lat", str(lat))
     point.set("lon", str(lon))
 
@@ -67,22 +70,22 @@ def aprs_to_cot_xml(aprs_frame: dict, config: dict) -> \
     # Height above Ellipsoid based on WGS-84 ellipsoid (measured in meters)
     point.set("hae", "9999999.0")
 
-    uid = xml.etree.ElementTree.Element("UID")
+    uid = ET.Element("UID")
     uid.set("Droid", f"{name} (APRS)")
 
-    contact = xml.etree.ElementTree.Element("contact")
+    contact = ET.Element("contact")
     contact.set("callsign", f"{callsign} (APRS)")
 
-    track = xml.etree.ElementTree.Element("track")
+    track = E.Element("track")
     track.set("course", "9999999.0")
 
-    detail = xml.etree.ElementTree.Element("detail")
+    detail = ET.Element("detail")
     detail.set("uid", name)
     detail.append(uid)
     detail.append(contact)
     detail.append(track)
 
-    remarks = xml.etree.ElementTree.Element("remarks")
+    remarks = ET.Element("remarks")
 
     comment = aprs_frame.get("comment")
     if comment:
@@ -91,7 +94,7 @@ def aprs_to_cot_xml(aprs_frame: dict, config: dict) -> \
 
 #    event.stale = time + datetime.timedelta(seconds=stale)
 
-    root = xml.etree.ElementTree.Element("event")
+    root = ET.Element("event")
     root.set("version", "2.0")
     root.set("type", cot_type)
     root.set("uid", f"APRS.{callsign}".replace(" ", ""))
@@ -110,7 +113,7 @@ def aprs_to_cot(aprs_frame: dict, config: dict) -> str:
     Converts an APRS Frame to a Cursor-on-Target Event, as a String.
     """
     cot_str: str = ""
-    cot_xml: xml.etree.ElementTree = aprs_to_cot_xml(aprs_frame, config)
+    cot_xml: ET.Element = aprs_to_cot_xml(aprs_frame, config)
     if cot_xml:
-        cot_str = xml.etree.ElementTree.tostring(cot_xml)
+        cot_str = ET.tostring(cot_xml)
     return cot_str
