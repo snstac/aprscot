@@ -5,8 +5,6 @@
 
 import datetime
 
-from typing import List
-
 import xml.etree.ElementTree as ET
 
 import pytak
@@ -20,8 +18,7 @@ __license__ = "Apache License, Version 2.0"
 __source__ = "https://github.com/ampledata/aprscot"
 
 
-def aprs_to_cot_xml(aprs_frame: dict, config: dict) -> \
-                    List[ET.Element, None]:  # NOQA pylint: disable=too-many-locals,too-many-statements
+def aprs_to_cot_xml(aprs_frame: dict, config: dict) -> ET.Element:  # NOQA pylint: disable=too-many-locals,too-many-statements
     """Converts an APRS Frame to a Cursor-on-Target Event."""
     time = datetime.datetime.now(datetime.timezone.utc)
 
