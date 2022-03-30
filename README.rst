@@ -24,6 +24,12 @@ See also:
 * Hayt's `APRS-TAK ATAK Plugin <https://drive.google.com/drive/folders/1o8tsalgxUGxdg2HiDw5xVu_-bnr63F3d>`_
 * Alan Barrow's aprstak: https://github.com/pinztrek/aprstak
 
+Concept:
+
+.. image:: https://raw.githubusercontent.com/ampledata/aprscot/main/docs/aprscot-concept.png
+   :alt: APRSCOT concept diagram.
+   :target: https://raw.githubusercontent.com/ampledata/aprscot/main/docs/aprscot-concept.png
+
 Support aprscot Development
 ============================
 
