@@ -1,76 +1,78 @@
-# Makefile for Python APRS Cursor-on-Target Gateway.
 #
-# Source:: https://github.com/ampledata/aprscot
+# Copyright 2022 Greg Albrecht <oss@undef.net>
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
 # Author:: Greg Albrecht W2GMD <oss@undef.net>
 # Copyright:: Copyright 2022 Greg Albrecht
 # License:: Apache License, Version 2.0
 #
 
-
+this_app = aprscot
 .DEFAULT_GOAL := all
 
-
-all: develop
-
-install_requirements:
-	if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-
-install_requirements_test:
-	pip install -r requirements_test.txt
+all: editable
 
 develop:
-	pip install -e .
+	python3 setup.py develop
+
+editable:
+	python3 -m pip install -e .
+
+install_test_requirements:
+	python3 -m pip install -r requirements_test.txt
 
 install:
-	python setup.py install
+	python3 setup.py install
 
 uninstall:
-	pip uninstall -y aprscot
+	python3 -m pip uninstall -y $(this_app)
 
 reinstall: uninstall install
 
-remember_test:
-	@echo
-	@echo "Hello from the Makefile..."
-	@echo "Don't forget to run: 'make install_requirements_test'"
-	@echo
+publish:
+	python3 setup.py publish
 
 clean:
 	@rm -rf *.egg* build dist *.py[oc] */*.py[co] cover doctest_pypi.cfg \
 		nosetests.xml pylint.log output.xml flake8.log tests.log \
-		test-result.xml htmlcov fab.log .coverage */__pycache__/
+		test-result.xml htmlcov fab.log .coverage __pycache__ \
+		*/__pycache__
 
-# Publishing:
-
-build: remember_test
-	python3 -m build --sdist --wheel
-
-twine_check: remember_test build
-	twine check dist/*
-
-upload: remember_test build
-	twine upload dist/*
-
-publish: build twine_check upload
-
-# Tests:
-
-pep8: remember_test
-	# flake8 --max-complexity 12 --exit-zero *.py */*.py
-	# stop the build if there are Python syntax errors or undefined names
-	flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-	# exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
-	flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+pep8:
+	flake8 --max-line-length=88 --extend-ignore=E203 --exit-zero $(this_app)/*.py
 
 flake8: pep8
 
-lint: remember_test
+lint:
 	pylint --msg-template="{path}:{line}: [{msg_id}({symbol}), {obj}] {msg}" \
-	-r n *.py */*.py || exit 0
+		--max-line-length=88 -r n $(this_app)/*.py || exit 0
 
 pylint: lint
 
-pytest: remember_test
+checkmetadata:
+	python3 setup.py check -s --restructuredtext
+
+mypy:
+	mypy --strict .
+
+pytest:
 	pytest
 
-test: lint pep8 pytest
+test: editable install_test_requirements pytest
+
+test_cov:
+	pytest --cov=$(this_app)
+
+black:
+	black .

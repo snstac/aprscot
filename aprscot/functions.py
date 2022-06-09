@@ -1,14 +1,29 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+#
+# Copyright 2022 Greg Albrecht <oss@undef.net>
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# Author:: Greg Albrecht W2GMD <oss@undef.net>
+#
 
-"""APRS Cursor-on-Target Gateway Functions."""
-
-import datetime
+"""APRSCOT Functions."""
 
 import xml.etree.ElementTree as ET
 
-import pytak
+from configparser import ConfigParser
+from typing import Set, Union
 
+import pytak
 import aprscot
 
 
@@ -18,37 +33,54 @@ __license__ = "Apache License, Version 2.0"
 __source__ = "https://github.com/ampledata/aprscot"
 
 
-def aprs_to_cot_xml(aprs_frame: dict, config: dict) -> ET.Element:  # NOQA pylint: disable=too-many-locals,too-many-statements
-    """Converts an APRS Frame to a Cursor-on-Target Event."""
-    time = datetime.datetime.now(datetime.timezone.utc)
+def create_tasks(
+    config: ConfigParser, clitool: pytak.CLITool
+) -> Set[pytak.Worker,]:
+    """
+    Creates specific coroutine task set for this application.
 
-    lat = aprs_frame.get("latitude")
-    lon = aprs_frame.get("longitude")
+    Parameters
+    ----------
+    config : `ConfigParser`
+        Configuration options & values.
+    clitool : `pytak.CLITool`
+        A PyTAK Worker class instance.
+
+    Returns
+    -------
+    `set`
+        Set of PyTAK Worker classes for this application.
+    """
+    return set([aprscot.APRSWorker(clitool.tx_queue, config)])
+
+
+def aprs_to_cot_xml(
+    frame: dict, config: Union[dict, None] = None
+) -> Union[
+    ET.Element, None
+]:  # NOQA pylint: disable=too-many-locals,too-many-statements
+    """Converts an APRS Frame to a Cursor-on-Target Event."""
+    lat = frame.get("latitude")
+    lon = frame.get("longitude")
 
     if not lat or not lon:
         return None
 
-    callsign = aprs_frame.get("from")
+    config: dict = config or {}
+    cot_stale = int(config.get("COT_STALE", pytak.DEFAULT_COT_STALE))
+
+    callsign = frame.get("from").replace(" ", "")
     name = callsign
 
-    if "aprscot" in config:
-        aprscot_conf = config["aprscot"]
-    else:
-        aprscot_conf = {}
+    cot_uid = f"APRS.{callsign}"
+    cot_type = config.get("COT_TYPE", aprscot.DEFAULT_COT_TYPE)
 
-    cot_type = aprscot_conf.get("COT_TYPE", aprscot.DEFAULT_COT_TYPE)
-    _cot_stale = aprscot_conf.get("COT_STALE", aprscot.DEFAULT_COT_STALE)
-
-    if 'sections' in config and callsign in config.sections():
-        cs_conf = aprscot_conf[callsign]
+    if "sections" in config and callsign in config.sections():
+        cs_conf = config[callsign]
         cot_type = cs_conf.get("COT_TYPE", cot_type)
-        _cot_stale = cs_conf.get("COT_STALE", _cot_stale)
+        cot_stale = cs_conf.get("COT_STALE", cot_stale)
         name = cs_conf.get("COT_NAME", name)
         cot_icon = cs_conf.get("COT_ICON")
-
-    cot_stale = (datetime.datetime.now(datetime.timezone.utc) +
-                 datetime.timedelta(
-                     seconds=int(_cot_stale))).strftime(pytak.ISO_8601_UTC)
 
     point = ET.Element("point")
     point.set("lat", str(lat))
@@ -77,40 +109,34 @@ def aprs_to_cot_xml(aprs_frame: dict, config: dict) -> ET.Element:  # NOQA pylin
     track.set("course", "9999999.0")
 
     detail = ET.Element("detail")
-    detail.set("uid", name)
+    detail.set("uid", cot_uid)
     detail.append(uid)
     detail.append(contact)
     detail.append(track)
 
     remarks = ET.Element("remarks")
 
-    comment = aprs_frame.get("comment")
+    comment = frame.get("comment")
     if comment:
         remarks.text = comment
         detail.append(remarks)
 
-#    event.stale = time + datetime.timedelta(seconds=stale)
-
     root = ET.Element("event")
     root.set("version", "2.0")
     root.set("type", cot_type)
-    root.set("uid", f"APRS.{callsign}".replace(" ", ""))
+    root.set("uid", cot_uid)
     root.set("how", "h-g-i-g-o")
-    root.set("time", time.strftime(pytak.ISO_8601_UTC))
-    root.set("start", time.strftime(pytak.ISO_8601_UTC))
-    root.set("stale", cot_stale)
+    root.set("time", pytak.cot_time())
+    root.set("start", pytak.cot_time())
+    root.set("stale", pytak.cot_time(cot_stale))
+
     root.append(point)
     root.append(detail)
 
     return root
 
 
-def aprs_to_cot(aprs_frame: dict, config: dict) -> str:
-    """
-    Converts an APRS Frame to a Cursor-on-Target Event, as a String.
-    """
-    cot_str: str = ""
-    cot_xml: ET.Element = aprs_to_cot_xml(aprs_frame, config)
-    if cot_xml:
-        cot_str = ET.tostring(cot_xml)
-    return cot_str
+def aprs_to_cot(frame: dict, config: Union[dict, None] = None) -> Union[bytes, None]:
+    """Wrapper that returns COT as an XML string."""
+    cot: Union[ET.Element, None] = aprs_to_cot_xml(frame, config)
+    return ET.tostring(cot) if cot else None

@@ -27,16 +27,16 @@ import aprscot.functions
 
 
 class FunctionsTestCase(unittest.TestCase):
-
     def test_aprs_to_cot_xml(self):
         """
         Tests that aprs_to_cot decodes an APRS Frame into a Cursor-on-Target
         message.
         """
         test_frame = (
-            'SUNSET>APRS,TCPIP*,qAC,T2SP:@145502z3745.60N/12229.85W_000/'
-            '000g000t060P000h99b00030W2GMD Outer Sunset, SF IGate/Digipeater '
-            'http://w2gmd.org')
+            "SUNSET>APRS,TCPIP*,qAC,T2SP:@145502z3745.60N/12229.85W_000/"
+            "000g000t060P000h99b00030W2GMD Outer Sunset, SF IGate/Digipeater "
+            "http://w2gmd.org"
+        )
 
         parsed_frame = aprslib.parse(test_frame)
         cot_frame = aprscot.functions.aprs_to_cot_xml(parsed_frame, {})
@@ -45,5 +45,5 @@ class FunctionsTestCase(unittest.TestCase):
         self.assertEqual(cot_frame.get("uid"), "APRS.SUNSET")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()
