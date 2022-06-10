@@ -98,21 +98,21 @@ repository.
 An example config, `COT_URL` is our COT destination server or client::
 
     [aprscot]
-    COT_URL = tcp:takserver.example.com:8088
+    COT_URL = tcp://takserver.example.com:8088
 
 
 `APRS-IS Server-side Filter Commands <http://www.aprs-is.net/javAPRSFilter.aspx>`_ 
 can be used to filter incoming APRS Frames::
 
     [aprscot]
-    COT_URL = tcp:takserver.example.com:8088
+    COT_URL = tcp://takserver.example.com:8088
     APRSIS_FILTER = f/W6PW-10/50
 
 PLI Transforms can be created using per-station sections. In this example, 
 we're overriding `W2GMD-9`'s COT Type & Callsign, and `NB6F-2`'s Callsign::
 
     [aprscot]
-    COT_URL = tcp:takserver.example.com:8088
+    COT_URL = tcp://takserver.example.com:8088
 
     [W2GMD-9]
     COT_TYPE = a-f-G-U-C
