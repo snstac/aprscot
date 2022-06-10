@@ -51,7 +51,7 @@ setuptools.setup(
     packages=[__title__],
     package_dir={__title__: __title__},
     url=f"https://github.com/ampledata/{__title__}",
-    entry_points={"console_scripts": [f"{__title__} = {__title__}.commands"]},
+    entry_points={"console_scripts": [f"{__title__} = {__title__}.commands:main"]},
     description="APRS Cursor-on-Target Gateway.",
     author="Greg Albrecht",
     author_email="oss@undef.net",

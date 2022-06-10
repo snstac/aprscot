@@ -20,6 +20,8 @@
 
 import asyncio
 
+from configparser import ConfigParser
+
 import aprslib.parsing
 
 import pytak
@@ -34,6 +36,10 @@ class APRSWorker(pytak.QueueWorker):
 
     """APRS Cursor-on-Target Worker Class."""
 
+    def __init__(self, queue: asyncio.Queue, config: ConfigParser):
+        super().__init__(queue, config)
+        _ = [x.setFormatter(aprscot.LOG_FORMAT) for x in self._logger.handlers]
+
     async def handle_data(self, data: bytes) -> None:
         """Handles messages from APRS Worker."""
         self._logger.debug("APRS data='%s'", data)
@@ -47,10 +53,10 @@ class APRSWorker(pytak.QueueWorker):
         # Some APRS Frame types are not supported by aprslib yet:
         try:
             frame = aprslib.parsing.parse(data)
-        except aprslib.exceptions.UnknownFormat as exc:
+        except aprslib.exceptions.UnknownFormat:
             self._logger.warning("Unhandled APRS Frame: '%s'", data)
             return
-        except aprslib.exceptions.ParseError as exc2:
+        except aprslib.exceptions.ParseError:
             self._logger.warning("Invalid Format: '%s'", data)
             return
 
