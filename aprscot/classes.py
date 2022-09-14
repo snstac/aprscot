@@ -83,11 +83,9 @@ class APRSWorker(pytak.QueueWorker):
         reader, writer = await asyncio.open_connection(aprs_host, int(aprs_port))
 
         # APRS Parameters:
-        passcode = "-1"
+        passcode: str = self.config.get("PASSCODE", aprscot.DEFAULT_APRSIS_PASSCODE)
         callsign: str = self.config.get("CALLSIGN", aprscot.DEFAULT_APRSIS_CALLSIGN)
-        aprs_filter: str = self.config.get(
-            "APRSIS_FILTER", aprscot.DEFAULT_APRSIS_FILTER
-        )
+        aprs_filter: str = self.config.get("APRSIS_FILTER", aprscot.DEFAULT_APRSIS_FILTER)
 
         _login = f"user {callsign} pass {passcode} vers aprscot v6.0.0"
 
