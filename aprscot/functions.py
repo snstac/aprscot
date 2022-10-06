@@ -139,4 +139,6 @@ def aprs_to_cot_xml(
 def aprs_to_cot(frame: dict, config: Union[dict, None] = None) -> Union[bytes, None]:
     """Wrapper that returns COT as an XML string."""
     cot: Union[ET.Element, None] = aprs_to_cot_xml(frame, config)
-    return ET.tostring(cot) if cot else None
+    return (
+        b"\n".join([pytak.DEFAULT_XML_DECLARATION, ET.tostring(cot)]) if cot else None
+    )

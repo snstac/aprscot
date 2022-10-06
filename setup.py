@@ -28,7 +28,7 @@ import sys
 import setuptools
 
 __title__ = "aprscot"
-__version__ = "6.0.0"
+__version__ = "6.1.0"
 __author__ = "Greg Albrecht W2GMD <oss@undef.net>"
 __copyright__ = "Copyright 2022 Greg Albrecht"
 __license__ = "Apache License, Version 2.0"
@@ -61,7 +61,7 @@ setuptools.setup(
     long_description_content_type="text/x-rst",
     zip_safe=False,
     include_package_data=True,
-    install_requires=["aprslib", "pytak >= 5.0.0"],
+    install_requires=["aprslib", "pytak >= 5.4.0"],
     classifiers=[
         "Topic :: Communications :: Ham Radio",
         "Programming Language :: Python",
