@@ -48,6 +48,7 @@ LL_REX = re.compile(
 DEFAULT_APRSIS_PORT: int = 14580
 DEFAULT_APRSIS_HOST: str = "rotate.aprs.net"
 DEFAULT_APRSIS_CALLSIGN: str = "SUNSET"
+DEFAULT_APRSIS_PASSCODE: str = "-1"
 DEFAULT_APRSIS_FILTER: str = "m/50"
 
 DEFAULT_COT_TYPE: str = "a-f-G-I-U-T-r"
