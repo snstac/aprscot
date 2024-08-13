@@ -18,7 +18,7 @@
 
 """APRS to TAK Gateway."""
 
-__version__ = "8.0.0-beta1"
+__version__ = "8.0.0-beta2"
 
 # COMPAT: CI compat (was py 3.6)
 try:
