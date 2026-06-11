@@ -19,6 +19,7 @@
 """APRSCOT Class Definitions."""
 
 import asyncio
+import xml.etree.ElementTree as ET
 
 from typing import Optional
 
@@ -26,6 +27,11 @@ import aprslib.parsing
 
 import pytak
 import aprscot
+
+try:
+    import gpsd as _gpsd
+except ImportError:
+    _gpsd = None
 
 
 class APRSWorker(pytak.QueueWorker):
@@ -97,3 +103,50 @@ class APRSWorker(pytak.QueueWorker):
             data = await reader.readline()
             if data:
                 await self.handle_data(data)
+
+
+class SensorWorker(pytak.QueueWorker):
+    """Periodic sensor CoT heartbeat. Sources position from gpsd, config, or null island."""
+
+    async def run(self, _=-1) -> None:
+        period = int(self.config.get(
+            "SENSOR_KEEPALIVE_PERIOD", aprscot.DEFAULT_SENSOR_KEEPALIVE_PERIOD))
+        self._logger.info(
+            "Running SensorWorker (period=%ds, gpsd=%s)", period, _gpsd is not None)
+        while True:
+            lat, lon, hae, ce, le = await self._get_position()
+            cot = aprscot.gen_sensor_cot(self.config, lat, lon, hae, ce, le)
+            if cot is not None:
+                await self.put_queue(ET.tostring(cot))
+            await asyncio.sleep(period)
+
+    async def _get_position(self):
+        if _gpsd is not None:
+            try:
+                result = await asyncio.to_thread(self._poll_gpsd)
+                if result is not None:
+                    return result
+            except Exception as exc:
+                self._logger.debug("gpsd unavailable: %s", exc)
+        lat = float(self.config.get("SENSOR_LAT") or aprscot.DEFAULT_SENSOR_LAT)
+        lon = float(self.config.get("SENSOR_LON") or aprscot.DEFAULT_SENSOR_LON)
+        hae = float(self.config.get("SENSOR_HAE") or aprscot.DEFAULT_SENSOR_HAE)
+        return lat, lon, hae, "9999999.0", "9999999.0"
+
+    @staticmethod
+    def _poll_gpsd():
+        _gpsd.connect()
+        packet = _gpsd.get_current()
+        if packet.mode < 2:
+            return None
+        try:
+            lat, lon = packet.position()
+        except Exception:
+            return None
+        try:
+            hae = packet.altitude()
+        except Exception:
+            hae = 0.0
+        ce = str(getattr(packet, "error", {}).get("x", "9999999.0") or "9999999.0")
+        le = str(getattr(packet, "error", {}).get("v", "9999999.0") or "9999999.0")
+        return lat, lon, hae, ce, le

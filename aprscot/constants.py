@@ -33,3 +33,14 @@ DEFAULT_APRSIS_FILTER: str = "m/50"
 
 DEFAULT_COT_TYPE: str = "a-f-G-I-U-T-r"
 DEFAULT_COT_STALE: str = "3600"
+
+# Sensor keep-alive / heartbeat
+import socket as _socket
+
+DEFAULT_SENSOR_KEEPALIVE_PERIOD: int = 30
+DEFAULT_SENSOR_LAT: float = 0.0
+DEFAULT_SENSOR_LON: float = 0.0
+DEFAULT_SENSOR_HAE: float = 0.0
+DEFAULT_SENSOR_ID: str = f"aprscot_{_socket.gethostname()}"
+DEFAULT_SENSOR_COT_TYPE: str = "a-f-G-E-S-E"
+DEFAULT_SENSOR_PAYLOAD_TYPE: str = "APRS-Gateway"
