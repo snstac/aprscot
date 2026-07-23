@@ -31,6 +31,10 @@ DEFAULT_APRSIS_CALLSIGN: str = "SUNSET"
 DEFAULT_APRSIS_PASSCODE: str = "-1"
 DEFAULT_APRSIS_FILTER: str = "m/50"
 
+# KISS-over-TCP TNC input (e.g. Dire Wolf). Used when KISS_HOST is set instead
+# of an APRS-IS connection — enables offline RF APRS -> CoT.
+DEFAULT_KISS_PORT: int = 8001
+
 DEFAULT_COT_TYPE: str = "a-f-G-I-U-T-r"
 DEFAULT_COT_STALE: str = "3600"
 
