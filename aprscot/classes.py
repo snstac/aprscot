@@ -34,6 +34,63 @@ except ImportError:
     _gpsd = None
 
 
+# KISS framing (RFC-less de-facto standard used by Dire Wolf & most TNCs).
+FEND, FESC, TFEND, TFESC = 0xC0, 0xDB, 0xDC, 0xDD
+
+
+def kiss_unescape(payload: bytes) -> bytes:
+    """Reverse KISS byte-stuffing (FESC TFEND -> FEND, FESC TFESC -> FESC)."""
+    out = bytearray()
+    i = 0
+    while i < len(payload):
+        b = payload[i]
+        if b == FESC and i + 1 < len(payload):
+            nxt = payload[i + 1]
+            out.append(FEND if nxt == TFEND else FESC if nxt == TFESC else nxt)
+            i += 2
+        else:
+            out.append(b)
+            i += 1
+    return bytes(out)
+
+
+def _decode_ax25_addr(frame: bytes, i: int):
+    """Return (address, has_been_repeated, is_last) for the 7-byte AX.25 address at i."""
+    call = "".join(chr(b >> 1) for b in frame[i : i + 6]).strip()
+    ssid_byte = frame[i + 6]
+    ssid = (ssid_byte >> 1) & 0x0F
+    repeated = bool(ssid_byte & 0x80)  # "H" (has-been-repeated) bit
+    last = bool(ssid_byte & 0x01)  # address-extension bit
+    addr = call if ssid == 0 else f"{call}-{ssid}"
+    return addr, repeated, last
+
+
+def ax25_to_tnc2(frame: bytes):
+    """Decode an AX.25 UI frame to a TNC2 monitor string (SRC>DEST,path:info).
+
+    Returns None if the frame is too short to be a valid AX.25 UI APRS frame.
+    The TNC2 string is exactly what ``aprslib.parsing.parse`` (and the APRS-IS
+    path) already consume, so downstream CoT conversion is unchanged.
+    """
+    if len(frame) < 15:
+        return None
+    dest, _, _ = _decode_ax25_addr(frame, 0)
+    src, _, last = _decode_ax25_addr(frame, 7)
+    i = 14
+    digis = []
+    # Up to 8 digipeaters follow the source address (bounded to avoid a runaway
+    # loop on a corrupt frame missing its address-extension bit).
+    while not last and i + 7 <= len(frame) and len(digis) < 8:
+        addr, repeated, last = _decode_ax25_addr(frame, i)
+        digis.append(addr + ("*" if repeated else ""))
+        i += 7
+    if i + 2 > len(frame):  # control (UI=0x03) + PID (0xF0)
+        return None
+    info = frame[i + 2 :].decode("latin-1", "replace")
+    path = ",".join([dest] + digis)
+    return f"{src}>{path}:{info}"
+
+
 class APRSWorker(pytak.QueueWorker):
     """APRS Cursor on Target Worker Class."""
 
@@ -103,6 +160,47 @@ class APRSWorker(pytak.QueueWorker):
             data = await reader.readline()
             if data:
                 await self.handle_data(data)
+
+
+class KISSWorker(APRSWorker):
+    """APRS-over-RF Worker: read a local KISS TNC (e.g. Dire Wolf) over TCP.
+
+    Connects to a KISS-over-TCP server (Dire Wolf's ``KISSPORT``, default 8001),
+    decodes each received AX.25 UI frame to a TNC2 string, and hands it to the
+    inherited ``handle_data`` — the same CoT path as the APRS-IS worker. Enables
+    fully-offline RF APRS (rtl_fm | direwolf -> aprscot -> TAK) with no APRS-IS.
+    """
+
+    async def run(self, number_of_iterations=-1):
+        """Read AX.25 frames from a KISS-over-TCP TNC and convert to CoT."""
+        self._logger.info("Running %s", self.__class__)
+
+        kiss_host: str = self.config.get("KISS_HOST", "")
+        kiss_port = self.config.get("KISS_PORT", aprscot.DEFAULT_KISS_PORT)
+        if ":" in kiss_host:
+            kiss_host, kiss_port = kiss_host.split(":")
+        self._logger.info("Using KISS TNC: %s:%s", kiss_host, kiss_port)
+
+        reader, _ = await asyncio.open_connection(kiss_host, int(kiss_port))
+
+        buf = bytearray()
+        while 1:
+            chunk = await reader.read(1024)
+            if not chunk:
+                break  # TNC closed the connection; pytak will restart the worker.
+            buf.extend(chunk)
+            # KISS frames are FEND-delimited. Process every completed segment.
+            while FEND in buf:
+                idx = buf.index(FEND)
+                segment = bytes(buf[:idx])
+                del buf[: idx + 1]
+                if not segment:
+                    continue  # empty inter-frame segment.
+                # segment = <KISS type/port byte> + escaped AX.25 frame.
+                payload = kiss_unescape(segment[1:])
+                tnc2 = ax25_to_tnc2(payload)
+                if tnc2:
+                    await self.handle_data(tnc2.encode("latin-1", "replace"))
 
 
 class SensorWorker(pytak.QueueWorker):

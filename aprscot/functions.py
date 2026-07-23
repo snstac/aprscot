@@ -43,7 +43,12 @@ def create_tasks(config: ConfigParser, clitool: pytak.CLITool) -> Set[pytak.Work
     `set`
         Set of PyTAK Worker classes for this application.
     """
-    tasks = set([aprscot.APRSWorker(clitool.tx_queue, config)])
+    # Input transport: a local KISS TNC (Dire Wolf, offline RF) when KISS_HOST is
+    # set, otherwise the APRS-IS internet feed. Both emit CoT via the same path.
+    if config.get("KISS_HOST"):
+        tasks = set([aprscot.KISSWorker(clitool.tx_queue, config)])
+    else:
+        tasks = set([aprscot.APRSWorker(clitool.tx_queue, config)])
     tasks.add(aprscot.SensorWorker(clitool.tx_queue, config))
     return tasks
 

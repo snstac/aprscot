@@ -18,7 +18,7 @@
 
 """APRS to TAK Gateway."""
 
-__version__ = "8.1.0"
+__version__ = "8.2.0"
 
 # COMPAT: CI compat (was py 3.6)
 try:
@@ -30,6 +30,7 @@ try:
         DEFAULT_APRSIS_CALLSIGN,
         DEFAULT_APRSIS_PASSCODE,
         DEFAULT_APRSIS_FILTER,
+        DEFAULT_KISS_PORT,
         DEFAULT_SENSOR_KEEPALIVE_PERIOD,
         DEFAULT_SENSOR_LAT,
         DEFAULT_SENSOR_LON,
@@ -41,7 +42,7 @@ try:
 
     from .functions import aprs_to_cot, create_tasks, gen_sensor_cot  # NOQA
 
-    from .classes import APRSWorker, SensorWorker  # NOQA
+    from .classes import APRSWorker, KISSWorker, SensorWorker  # NOQA
 except ImportError as exc:
     import warnings
 
