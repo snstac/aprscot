@@ -18,7 +18,7 @@
 
 """APRS to TAK Gateway."""
 
-__version__ = "8.2.1"
+__version__ = "8.3.0"
 
 # Constants are safe to import with no third-party dependencies, so they are
 # imported unconditionally and a genuine problem here is allowed to raise.
