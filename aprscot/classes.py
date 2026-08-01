@@ -328,6 +328,12 @@ class APRSWorker(pytak.QueueWorker):
                     await self.handle_data(data)
         finally:
             heartbeat.cancel()
+            # Flush on the way out. Per-frame writes are rate-limited to 1/s,
+            # so without this the counters from the seconds before a connection
+            # drop are simply lost -- and those are precisely the ones an
+            # operator wants after systemd restarts the worker.
+            self.status.set(connected=False)
+            self.status.write(force=True)
 
 
 class KISSWorker(APRSWorker):
@@ -388,6 +394,9 @@ class KISSWorker(APRSWorker):
                         self.status.write()
         finally:
             heartbeat.cancel()
+            # See APRSWorker.run(): flush the final counters as the worker exits.
+            self.status.set(connected=False)
+            self.status.write(force=True)
 
 
 class SensorWorker(pytak.QueueWorker):

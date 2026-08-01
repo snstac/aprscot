@@ -203,21 +203,30 @@ class TestStatusSurface:
         """
         worker = self._worker(tmp_path)
 
+        # Hold the writer: from Python 3.13 StreamWriter.__del__ closes the
+        # transport, so a handler that drops its reference hangs up instantly
+        # and the worker sees EOF rather than an idle TNC.
+        clients = []
+
+        async def serve(reader, writer):
+            clients.append(writer)
+            await reader.read()
+
         async def drive():
-            server = await asyncio.start_server(
-                lambda reader, writer: None, "127.0.0.1", 0
-            )
+            server = await asyncio.start_server(serve, "127.0.0.1", 0)
             port = server.sockets[0].getsockname()[1]
             worker.config = {"KISS_HOST": "127.0.0.1", "KISS_PORT": str(port)}
             task = asyncio.ensure_future(KISSWorker.run(worker))
             await asyncio.sleep(0.1)
+            # Read while the worker is still up. run()'s exit path deliberately
+            # rewrites connected=false to flush the final counters.
+            doc = self._doc(worker)
             task.cancel()
             server.close()
-            return port
+            return port, doc
 
-        port = asyncio.run(drive())
+        port, doc = asyncio.run(drive())
 
-        doc = self._doc(worker)
         assert doc["source"] == f"kiss://127.0.0.1:{port}"
         assert doc["connected"] is True
 
