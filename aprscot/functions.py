@@ -20,11 +20,17 @@
 
 import xml.etree.ElementTree as ET
 
-from configparser import ConfigParser
+from configparser import ConfigParser, SectionProxy
 from typing import Set, Union
 
 import pytak
 import aprscot
+
+
+def sensor_beacon_enabled(config: Union[dict, SectionProxy]) -> bool:
+    """Return whether the periodic receiver beacon is enabled."""
+    value = config.get("SENSOR_BEACON", "1")
+    return str(value).strip().lower() not in {"0", "false", "no", "off"}
 
 
 def create_tasks(config: ConfigParser, clitool: pytak.CLITool) -> Set[pytak.Worker,]:
@@ -49,7 +55,8 @@ def create_tasks(config: ConfigParser, clitool: pytak.CLITool) -> Set[pytak.Work
         tasks = set([aprscot.KISSWorker(clitool.tx_queue, config)])
     else:
         tasks = set([aprscot.APRSWorker(clitool.tx_queue, config)])
-    tasks.add(aprscot.SensorWorker(clitool.tx_queue, config))
+    if sensor_beacon_enabled(config):
+        tasks.add(aprscot.SensorWorker(clitool.tx_queue, config))
     return tasks
 
 
