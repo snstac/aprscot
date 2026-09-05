@@ -22,6 +22,11 @@ APRSIS_FILTER = f/W6PW-10/50
 
     COT Stale time.
 
+* **`SENSOR_BEACON`**:
+    * Default: ``1``
+
+    Set to ``0`` to disable the periodic receiver marker. APRS tracks remain enabled.
+
 * **`COT_NAME`**:
     * Default: unset
     

@@ -1,3 +1,8 @@
+## APRSCoT 8.3.1
+
+- Add `SENSOR_BEACON=0` to disable the periodic receiver marker without
+  disabling APRS tracks.
+
 ## APRSCoT 8.3.0
 
 - **Runtime status surface.** aprscot now writes `/run/aprscot/status.json` via
