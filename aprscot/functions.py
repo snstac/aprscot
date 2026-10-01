@@ -33,6 +33,56 @@ def sensor_beacon_enabled(config: Union[dict, SectionProxy]) -> bool:
     return str(value).strip().lower() not in {"0", "false", "no", "off"}
 
 
+def callsign_section(config, callsign: str):
+    """Return the per-callsign config section for `callsign`, or None.
+
+    pytak.cli() passes a `SectionProxy` (just the first section), so the full
+    `ConfigParser` is reached through its `parser` attribute. A bare
+    `ConfigParser` and plain dicts are also accepted.
+    """
+    parser = getattr(config, "parser", config)
+    has_section = getattr(parser, "has_section", None)
+    if has_section is not None and has_section(callsign):
+        return parser[callsign]
+    return None
+
+
+def aprsis_settings(config: Union[dict, SectionProxy]) -> dict:
+    """Resolve APRS-IS connection settings from configuration only.
+
+    `APRSIS_HOST` / `APRSIS_PORT` / `APRSIS_CALLSIGN` are the documented keys;
+    the older `APRS_HOST` / `APRS_PORT` / `CALLSIGN` are still accepted.
+    Credentials are never defaulted to anything but the APRS-IS anonymous
+    read-only login (passcode "-1").
+    """
+    host = str(
+        config.get("APRSIS_HOST")
+        or config.get("APRS_HOST")
+        or aprscot.DEFAULT_APRSIS_HOST
+    ).strip()
+    port = (
+        config.get("APRSIS_PORT")
+        or config.get("APRS_PORT")
+        or aprscot.DEFAULT_APRSIS_PORT
+    )
+    if host.count(":") == 1:
+        host, port = host.split(":")
+    labels = host.split(".")
+    if not host or any(not label for label in labels):
+        raise ValueError(f"Invalid APRS-IS host: {host!r}")
+    return {
+        "host": host,
+        "port": int(port),
+        "callsign": config.get("APRSIS_CALLSIGN")
+        or config.get("CALLSIGN")
+        or aprscot.DEFAULT_APRSIS_CALLSIGN,
+        "passcode": str(
+            config.get("APRSIS_PASSCODE") or aprscot.DEFAULT_APRSIS_PASSCODE
+        ),
+        "filter": config.get("APRSIS_FILTER", aprscot.DEFAULT_APRSIS_FILTER),
+    }
+
+
 def create_tasks(config: ConfigParser, clitool: pytak.CLITool) -> Set[pytak.Worker,]:
     """
     Create a specific coroutine task set for this application.
@@ -83,15 +133,15 @@ def aprs_to_cot_xml(
     cot_type = config.get("COT_TYPE", aprscot.DEFAULT_COT_TYPE)
     cot_icon = config.get("COT_ICON")
 
-    if "sections" in config and callsign in config.sections():
-        cs_conf = config[callsign]
+    cs_conf = callsign_section(config, callsign)
+    if cs_conf is not None:
         cot_type = cs_conf.get("COT_TYPE", cot_type)
-        cot_stale = cs_conf.get("COT_STALE", cot_stale)
+        cot_stale = int(cs_conf.get("COT_STALE", cot_stale))
         name = cs_conf.get("COT_NAME", name)
-        cot_icon = cs_conf.get("COT_ICON")
+        cot_icon = cs_conf.get("COT_ICON", cot_icon)
 
     contact = ET.Element("contact")
-    contact.set("callsign", f"{callsign} (APRS)")
+    contact.set("callsign", f"{name} (APRS)")
 
     track = ET.Element("track")
     track.set("course", "9999999.0")
@@ -157,8 +207,12 @@ def aprs_to_cot(frame: dict, config: Union[dict, None] = None) -> Union[bytes, N
 
 
 def gen_sensor_cot(
-    config=None, lat: float = 0.0, lon: float = 0.0, hae: float = 0.0,
-    ce: str = "9999999.0", le: str = "9999999.0",
+    config=None,
+    lat: float = 0.0,
+    lon: float = 0.0,
+    hae: float = 0.0,
+    ce: str = "9999999.0",
+    le: str = "9999999.0",
 ):
     """Generate a periodic sensor beacon CoT (a-f-G-E-S-E)."""
     config = config or {}
@@ -166,7 +220,9 @@ def gen_sensor_cot(
     cot_type = config.get("SENSOR_COT_TYPE", aprscot.DEFAULT_SENSOR_COT_TYPE)
     cot_stale = int(config.get("COT_STALE", pytak.DEFAULT_COT_STALE))
     callsign = config.get("SENSOR_CALLSIGN", sensor_id)
-    payload_type = config.get("SENSOR_PAYLOAD_TYPE", aprscot.DEFAULT_SENSOR_PAYLOAD_TYPE)
+    payload_type = config.get(
+        "SENSOR_PAYLOAD_TYPE", aprscot.DEFAULT_SENSOR_PAYLOAD_TYPE
+    )
 
     contact = ET.Element("contact")
     contact.set("callsign", callsign)
@@ -180,8 +236,14 @@ def gen_sensor_cot(
     detail.append(sensor_elem)
 
     cot = pytak.gen_cot_xml(
-        lat=str(lat), lon=str(lon), hae=str(hae), ce=ce, le=le,
-        uid=f"SENSOR.{sensor_id}", cot_type=cot_type, stale=cot_stale,
+        lat=str(lat),
+        lon=str(lon),
+        hae=str(hae),
+        ce=ce,
+        le=le,
+        uid=f"SENSOR.{sensor_id}",
+        cot_type=cot_type,
+        stale=cot_stale,
     )
     cot.set("how", "m-g")
     cot.set("access", config.get("COT_ACCESS", pytak.DEFAULT_COT_ACCESS))

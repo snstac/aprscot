@@ -282,10 +282,9 @@ class APRSWorker(pytak.QueueWorker):
         """Run this Thread, Reads from Pollers."""
         self._logger.info("Running %s", self.__class__)
 
-        aprs_host: str = self.config.get("APRS_HOST", aprscot.DEFAULT_APRSIS_HOST)
-        aprs_port: str = self.config.get("APRS_PORT", aprscot.DEFAULT_APRSIS_PORT)
-        if ":" in aprs_host:
-            aprs_host, aprs_port = aprs_host.split(":")
+        settings = aprscot.functions.aprsis_settings(self.config)
+        aprs_host: str = settings["host"]
+        aprs_port: int = settings["port"]
         self._logger.info("Using APRS-IS server: %s:%s", aprs_host, aprs_port)
 
         # Write BEFORE connecting. If APRS-IS is unreachable this worker dies
@@ -297,14 +296,10 @@ class APRSWorker(pytak.QueueWorker):
 
         reader, writer = await asyncio.open_connection(aprs_host, int(aprs_port))
 
-        # APRS Parameters:
-        passcode: str = self.config.get(
-            "APRSIS_PASSCODE", aprscot.DEFAULT_APRSIS_PASSCODE
-        )
-        callsign: str = self.config.get("CALLSIGN", aprscot.DEFAULT_APRSIS_CALLSIGN)
-        aprs_filter: str = self.config.get(
-            "APRSIS_FILTER", aprscot.DEFAULT_APRSIS_FILTER
-        )
+        # APRS Parameters (credentials come from config only, never logged):
+        passcode: str = settings["passcode"]
+        callsign: str = settings["callsign"]
+        aprs_filter: str = settings["filter"]
 
         _login = f"user {callsign} pass {passcode} vers aprscot v8"
 
