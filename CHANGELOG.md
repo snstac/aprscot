@@ -1,3 +1,16 @@
+## Unreleased
+
+- Fixed #16: per-callsign `[CALLSIGN]` sections (`COT_TYPE`, `COT_STALE`,
+  `COT_NAME`, `COT_ICON`) are applied again. pytak hands aprscot a
+  `SectionProxy`; the parent parser is now used to find the section.
+- Fixed #13: the documented `APRSIS_HOST` / `APRSIS_PORT` / `APRSIS_CALLSIGN`
+  settings are now honoured (the worker read undocumented `APRS_HOST` etc.,
+  which are still accepted). A malformed host such as `noam..aprs2.net` now
+  fails with a clear error instead of an IDNA `UnicodeError`.
+- #15: self-hosted APRS-IS servers: set `APRSIS_HOST`, `APRSIS_PORT`,
+  `APRSIS_CALLSIGN` and `APRSIS_PASSCODE` in config. No credentials are
+  shipped or defaulted; the passcode is never logged.
+
 ## APRSCoT 8.3.1
 
 - Add `SENSOR_BEACON=0` to disable the periodic receiver marker without

@@ -37,10 +37,13 @@ APRSIS_FILTER = f/W6PW-10/50
 
     APRS-IS connection callsign.
 
-* **`APRSIS_PASSWORD`**:
+* **`APRSIS_PASSCODE`**:
     * Default: ``-1``
 
-    APRS-IS connection password.
+    APRS-IS connection passcode. Set this (with `APRSIS_CALLSIGN`) together with
+    `APRSIS_HOST` / `APRSIS_PORT` to log in to a self-hosted APRS-IS server.
+    Credentials are read from configuration only; the default `-1` is the
+    anonymous read-only login. The passcode is never logged.
 
 * **`APRSIS_PORT`**:
     * Default: ``14580``
